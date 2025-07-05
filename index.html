@@ -862,7 +862,177 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
         const surveyorSearchResultsDiv = document.getElementById("surveyorSearchResults");
         const surveyorDetailsDiv = document.getElementById("surveyorDetails");
 
-        // Utility function to show notifications
+	// Get references to the "Add Surveyor" button and its input fields
+        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Ensure your button has this ID now
+        // newPrefixInput and newNameInput are already declared above this line
+
+        // Add event listener for the "Add Surveyor" button
+        addSurveyorBtn.addEventListener('click', async () => {
+            const prefix = newPrefixInput.value.trim().toUpperCase(); // Convert to uppercase for consistency
+            const name = newNameInput.value.trim();
+
+            if (!prefix || !name) {
+                showNotification('Please enter both Prefix and Surveyor Name.', 'error');
+                return;
+            }
+
+            try {
+                // Use setDoc to create/overwrite a document with the prefix as its ID
+                await setDoc(doc(db, "surveyors", prefix), {
+                    name: name,
+                    createdAt: new Date(),
+                    // You might want to add initial quota usage here, e.g.,
+                    // usage: { "2025-Q1": 0 }
+                });
+
+                showNotification(`Surveyor "${name}" (${prefix}) added successfully!`, 'success');
+                console.log("New surveyor added with ID:", prefix);
+
+                // Clear the input fields
+                newPrefixInput.value = '';
+                newNameInput.value = '';
+
+                // Optionally, reload surveyor data into the select dropdown if you have that functionality
+                // await loadSurveyorData(); // Assuming you have a function to load surveyors into a dropdown
+
+            } catch (e) {
+                console.error("Error adding new surveyor:", e);
+                showNotification(`Error adding surveyor: ${e.message}`, 'error');
+            }
+        });
+
+        // ... (inside document.addEventListener('DOMContentLoaded', async () => { ... })
+    // DOM elements for CSV upload
+    const csvUploadArea = document.getElementById('csvUploadArea');
+    const csvFileInput = document.getElementById('csvFileInput');
+    const csvFileNameDisplay = document.getElementById('csvFileNameDisplay');
+    const uploadCsvBtn = document.getElementById('uploadCsvBtn');
+
+    // CSV File Upload Logic
+    csvUploadArea.addEventListener('click', () => {
+        csvFileInput.click();
+    });
+
+    csvFileInput.addEventListener('change', () => {
+        if (csvFileInput.files.length > 0) {
+            csvFileNameDisplay.innerText = `Selected file: ${csvFileInput.files[0].name}`;
+        } else {
+            csvFileNameDisplay.innerText = '';
+        }
+    });
+
+    csvUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.add('dragover');
+    });
+
+    csvUploadArea.addEventListener('dragleave', () => {
+        csvUploadArea.classList.remove('dragover');
+    });
+
+    csvUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            csvFileInput.files = e.dataTransfer.files;
+            csvFileNameDisplay.innerText = `Selected file: ${csvFileInput.files[0].name}`;
+        }
+    });
+
+
+    // Event listener for the "Upload CSV" button
+    uploadCsvBtn.addEventListener('click', async () => {
+        if (csvFileInput.files.length === 0) {
+            showNotification('Please select a CSV file to upload.', 'warning');
+            return;
+        }
+
+        const file = csvFileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter out empty lines
+
+            if (lines.length <= 1) { // Check for header + at least one data row
+                showNotification('CSV file is empty or contains only headers.', 'error');
+                return;
+            }
+
+            const batch = db.batch(); // Start a new batch write
+            let successfulAdds = 0;
+            let failedAdds = 0;
+            let overwrittenCount = 0; // To track if existing prefixes are overwritten
+
+            // Skip header row
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                const parts = line.split(',');
+
+                // Basic CSV format: Prefix,Name
+                if (parts.length >= 2) {
+                    const prefix = parts[0].trim().toUpperCase();
+                    const name = parts[1].trim();
+
+                    if (prefix && name) {
+                        const surveyorRef = doc(db, "surveyors", prefix);
+                        batch.set(surveyorRef, {
+                            name: name,
+                            createdAt: new Date(),
+                            // Add other fields if your CSV has them, e.g.,
+                            // email: parts[2] ? parts[2].trim() : '',
+                            // phoneNumber: parts[3] ? parts[3].trim() : '',
+                        }, { merge: true }); // Use merge: true to avoid overwriting existing data if adding fields
+                        successfulAdds++;
+                    } else {
+                        console.warn(`Skipping malformed row: ${line}`);
+                        failedAdds++;
+                    }
+                } else {
+                    console.warn(`Skipping malformed row (not enough columns): ${line}`);
+                    failedAdds++;
+                }
+            }
+
+            if (successfulAdds === 0) {
+                showNotification('No valid surveyor data found in CSV.', 'error');
+                return;
+            }
+
+            try {
+                await batch.commit(); // Commit the batch write
+                let message = `Successfully added/updated ${successfulAdds} surveyors from CSV!`;
+                if (failedAdds > 0) {
+                    message += ` (${failedAdds} rows skipped due to errors or missing data.)`;
+                }
+                showNotification(message, 'success', 5000);
+                console.log(`CSV upload complete. Added/Updated: ${successfulAdds}, Skipped: ${failedAdds}`);
+
+                // Optionally, clear file input and display
+                csvFileInput.value = '';
+                csvFileNameDisplay.innerText = '';
+
+                // You might want to reload surveyor data into your select dropdown here
+                // if you have a loadSurveyorData() function.
+                // await loadSurveyorData();
+
+            } catch (error) {
+                console.error("Error uploading CSV batch:", error);
+                showNotification(`Error uploading CSV: ${error.message}`, 'error', 5000);
+            }
+        };
+
+        reader.onerror = () => {
+            showNotification('Error reading file. Please try again.', 'error');
+            console.error("FileReader error:", reader.error);
+        };
+
+        reader.readAsText(file); // Read the file as text
+    });
+
+// ... (rest of your DOMContentLoaded code) ...
+
+	// Utility function to show notifications
         function showNotification(message, type = 'info', duration = 3000) {
             const notification = document.getElementById('notificationContainer');
             notification.innerText = message;
