@@ -351,6 +351,49 @@ medium green */
             }
         }
     });
+ // Inside your document.addEventListener('DOMContentLoaded', async () => { ... } block
+// After your Firebase initialization (const db = getFirestore(app);)
+// and after defining other DOM elements like newPrefixInput, newNameInput, etc.
+
+// Get references to the "Add Surveyor" button and its input fields
+const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Ensure your button has this ID now
+const newPrefixInput = document.getElementById('newPrefix');
+const newNameInput = document.getElementById('newName');
+
+// Add event listener for the "Add Surveyor" button
+addSurveyorBtn.addEventListener('click', async () => {
+    const prefix = newPrefixInput.value.trim().toUpperCase(); // Convert to uppercase for consistency
+    const name = newNameInput.value.trim();
+
+    if (!prefix || !name) {
+        showNotification('Please enter both Prefix and Surveyor Name.', 'error');
+        return;
+    }
+
+    try {
+        // Use setDoc to create/overwrite a document with the prefix as its ID
+        await setDoc(doc(db, "surveyors", prefix), {
+            name: name,
+            createdAt: new Date(),
+            // You might want to add initial quota usage here, e.g.,
+            // usage: { "2025-Q1": 0 }
+        });
+
+        showNotification(`Surveyor "${name}" (${prefix}) added successfully!`, 'success');
+        console.log("New surveyor added with ID:", prefix);
+
+        // Clear the input fields
+        newPrefixInput.value = '';
+        newNameInput.value = '';
+
+        // Optionally, reload surveyor data into the select dropdown if you have that functionality
+        // await loadSurveyorData(); // Assuming you have a function to load surveyors into a dropdown
+
+    } catch (e) {
+        console.error("Error adding new surveyor:", e);
+        showNotification(`Error adding surveyor: ${e.message}`, 'error');
+    }
+});
 </script>
  </head>
  <body class="bg-gray-50 min-h-screen">
