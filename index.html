@@ -824,7 +824,9 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
 
         // Fetch the test document
         const docRef = doc(db, "testCollection", "testDoc");
-        const docSnap = await getDoc(docRef);
+       async function myFunction() {
+  const docSnap = await getDoc(docRef); // ✅ This works
+}
 
         if (docSnap.exists()) {
             console.log("✅ Document data:", docSnap.data());
