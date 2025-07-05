@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeaconGen 2025 - Cadastral Beacon System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" 
 rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
 rel="stylesheet">
     <style>
         /* Custom CSS for animations and styling */
@@ -242,7 +242,7 @@ rel="stylesheet">
         /* New styles for generatedBeacons display */
         .generated-beacons-display-custom {
             background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-        /* Light green to
+        /* Light green to 
 medium green */
             border: 1px solid #34d399;
         /* A more vibrant green border */
@@ -299,8 +299,7 @@ medium green */
         getDoc,
         setDoc,
         updateDoc,
-        addDoc,
-        writeBatch // Added for batch writes
+        addDoc
     } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -351,7 +350,444 @@ medium green */
                 loadingOverlay.style.display = 'none';
             }
         }
-
+    });
+</script>
+ </head>
+ <body class="bg-gray-50 min-h-screen">
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading data...</p>
+    </div>
+    <div id="notificationContainer" class="notification"></div>
+    <nav class="gradient-bg text-white shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                 <div class="flex items-center">
+                    <i class="fas fa-map-marker-alt text-2xl mr-3"></i>
+                    <span class="text-xl font-bold">BeaconGen 2025</span>
+                    <span class="ml-2 text-sm opacity-75">Edo State Cadastral Beacon Management</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Year: <span class="font-bold" id="yearText">2025</span></span>
+                    <span class="text-sm">Welcome, <span id="currentUser">Survey Admin</span></span>
+                    <button class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-md 
+transition-all duration-200">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="max-w-7xl 
+mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 fade-in">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastral Beacon Generation System 
+2025</h1>
+            <p class="text-gray-600">Enhanced cadastral beacon number generation with GIS 
+integration for land surveying - Edo State, Nigeria</p>
+        </div>
+        <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg 
+card-shadow">
+            <div class="flex items-center">
+                <i class="fas fa-refresh mr-3 text-xl"></i>
+                <div id="systemStatusText">
+                    </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Beacons Generated (2025)</p>
+                        <p class="text-2xl font-bold text-blue-600" id="totalBeacons">0</p>
+                    </div>
+                    <div class="bg-blue-100 
+p-3 rounded-full">
+                        <i class="fas fa-map-pin text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Active Surveyors</p>
+                        <p class="text-2xl font-bold text-green-600" id="activeSurveyors">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-users text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Parcels Surveyed</p>
+                        <p class="text-2xl font-bold text-purple-600" id="parcelsCount">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-draw-polygon text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">GIS Coordinates</p>
+                        <p class="text-2xl font-bold text-indigo-600" id="gisPoints">0</p>
+                    </div>
+                    <div class="bg-indigo-100 p-3 rounded-full">
+                        <i class="fas fa-globe text-indigo-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">System Uptime</p>
+                        <p class="text-2xl font-bold text-orange-600">99.9%</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-full">
+                        <i class="fas fa-server text-orange-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg card-shadow p-6 fade-in">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-plus-circle text-blue-600 
+mr-2"></i>
+                    Generate Cadastral Beacon Numbers
+                </h2>
+                <div class="unique-beacon-display">
+                    <i class="fas fa-certificate mr-2"></i>
+                    Unique Beacon ID: <span id="uniqueBeaconId">SC/ED AA0000AZ</span>
+                </div>
+                <form id="beaconForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Surveyor 
+Registration</label>
+                        <select id="surveyorSelect" class="form-input w-full p-3 border border-gray-300 
+rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select Surveyor</option>
+                            </select>
+                        <div id="surveyorQuota" class="mt-2 text-sm text-gray-600"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Number of 
+Beacons</label>
+                        <input type="number" id="beaconCount" min="1" max="50" value="4"
+                            class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 
+focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter number of beacons">
+                        <p class="text-xs text-gray-500 mt-1">Maximum 50 beacons per parcel</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Origin Beacon 
+Coordinates (Required)</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Latitude</label>
+                                <input type="number" id="latitude" step="0.00001" class="form-input w-full 
+p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border
+transparent" placeholder="6.3350" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Longitude</label>
+                                <input type="number" id="longitude" step="0.000001" class="form-input w-full 
+p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 
+focus:border-transparent" placeholder="5.6037" required>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Origin coordinates will be recorded for GIS integration.
+                            Other beacon 
+coordinates will be generated from RECCE diagram.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Area 
+(Hectares)</label>
+                        <input type="number" id="parcelArea" step="0.01" min="0.01"
+                            class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 
+focus:ring-blue-500 focus:border-transparent"
+                            placeholder="2.5">
+                        <p class="text-xs text-gray-500 mt-1">Enter 
+the total area of the parcel in 
+hectares</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Local Government 
+Area</label>
+                        <select id="lgaSelect" class="form-input w-full p-3 border border-gray-300 
+rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select LGA</option>
+                            <option value="egor">Egor</option>
+                            <option 
+value="oredo">Oredo</option>
+                            <option value="ikpoba-okha">Ikpoba-Okha</option>
+                            <option value="igueben">Igueben</option>
+                            <option value="ovia-north-east">Ovia North-East</option>
+                            <option value="uhunmwonde">Uhunmwonde</option>
+                            <option value="orhionmwon">Orhionmwon</option>
+                            <option value="ovia-south-west">Ovia South West</option>
+                            <option value="esan-central">Esan Central</option>
+                            <option value="esan-south-east">Esan-South-East</option>
+                            <option value="esan-west">Esan-West</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RECCE Diagram 
+Upload (Required for GIS)</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600 mb-2">Click to upload or drag and drop RECCE 
+diagram</p>
+                            <p class="text-xs text-gray-500">Required for coordinate generation via GIS 
+integration</p>
+                            <p class="text-xs text-gray-500">Supported formats: PDF, JPG, PNG, DWG 
+(Max 10MB)</p>
+                            <input type="file" id="recceDiagram" class="hidden" 
+accept=".pdf,.jpg,.jpeg,.png,.dwg" multiple>
+                        </div>
+                        <div id="uploadedFiles" class="mt-2"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Parcel 
+Description</label>
+                        <textarea id="description" rows="3" class="form-input w-full p-3 border border
+gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Describe the parcel location and purpose..."></textarea>
+                        <div class="flex space-x-2 mt-2">
+                            <button type="button" id="enhanceDescriptionBtn" class="bg-blue-500 text
+white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm">
+ ✨ Enhance Description
+                            </button>
+                            <button type="button" id="summarizeDescriptionBtn" class="bg-purple-500 
+text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm">
+ ✨ Summarize Description
+                            </button>
+                        </div>
+                        <div id="llmOutputContainer" class="mt-4 
+p-4 bg-gray-100 rounded-md border 
+border-gray-200 hidden">
+                            <p class="font-semibold text-gray-700 mb-2">LLM Output:</p>
+                            <div id="llmOutputText" class="text-gray-800 whitespace-pre-wrap"></div>
+                            <div id="llmLoadingSpinner" class="hidden text-center 
+mt-2">
+                                <div class="spinner w-6 h-6 border-2 mx-auto"></div>
+                                <p class="text-sm text-gray-600">Generating...</p>
+                            </div>
+                            <button type="button" id="copyLlmOutputBtn" class="mt-3 bg-green-500 text
+white px-3 py-1 rounded-md hover:bg-green-600 transition-colors duration-200 text-xs">
+                                Copy to Clipboard
+                            </button>
+                            <button type="button" id="clearLlmOutputBtn" class="mt-3 ml-2 bg-red-500 
+text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200 text-xs">
+                                Clear Output
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full text-white py-3 px-6 rounded-md 
+transition-colors duration-200 pulse-animation">
+                        <i class="fas fa-magic mr-2"></i>Generate Cadastral Beacon Numbers
+                    </button>
+                </form>
+                <div id="generatedBeacons" class="mt-6 hidden generated-beacons-display-custom">
+                    <h3 class="font-bold text-green-800 mb-2">Generated Cadastral Beacon 
+Numbers:</h3>
+                    <div id="beaconsList" class="batch-results space-y-2"></div>
+                    <div class="coordinates-display">
+                        <h4 class="font-bold mb-2">GIS Coordinates Recorded:</h4>
+                        <div id="coordinatesList"></div>
+                    </div>
+                    <div class="mt-4 text-sm text-green-700">
+                        <p><strong>Format:</strong> SC/ED AA0000AZ</p>
+                        <p><strong>Unique 
+ID:</strong> <span id="generatedUniqueId"></span></p>
+                        <p><strong>Total Generated:</strong> <span id="totalGenerated">0</span></p>
+                        <p><strong>Parcel Area:</strong> <span id="displayParcelArea">0</span> 
+hectares</p>
+                        <p><strong>GIS Integration:</strong> <span class="text-blue-600">Coordinates 
+recorded for mapping</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg card-shadow p-6 fade-in">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-search text-purple-600 mr-2"></i>
+                    Pattern Matching & Validation
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search/Validate 
+Beacon</label>
+                        <div class="relative">
+                            <input type="text" id="searchBeacon" class="form-input w-full p-3 pl-10 border 
+border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter beacon number (e.g., SC/ED AA0001AZ)">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <button id="validateBtn" class="w-full bg-purple-600 text-white py-3 px-6 rounded
+md hover:bg-purple-700 transition-colors duration-200">
+                        <i class="fas fa-check-circle mr-2"></i>Validate Beacon
+                    </button>
+                </div>
+                <div id="validationResults" class="mt-6 hidden">
+                    <h3 class="font-bold text-gray-800 mb-3">Validation Results:</h3>
+                    <div id="validationContent" class="space-y-2"></div>
+                </div>
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                    <h3 class="font-bold text-blue-800 mb-2">2025 Cadastral Guidelines</h3>
+                    <div class="text-sm text-blue-700">
+                        <p><strong>New Requirements:</strong></p>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li>200 beacon limit per surveyor per <strong>quarter</strong></li>
+                            <li>Quota resets 
+every quarter (Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec)</li>
+                            <li>Origin coordinates mandatory for GIS integration</li>
+                            <li>RECCE diagram required for coordinate generation</li>
+                            <li>All 
+beacons must be validated through the system</li>
+                            <li>Minimum 4 beacons per parcel maintained</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-md">
+                    <h3 class="font-bold text-orange-800 mb-2">Surveyor Quotas (2025)</h3>
+                    <div class="text-sm text-orange-700">
+                        <p><strong>Allocation Status:</strong></p>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li>Each surveyor: 200 beacons/year</li>
+                            <li>Quota resets January 1st</li>
+                            <li>System tracks usage automatically</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fas fa-map text-green-600 mr-2"></i> Enhanced GIS Visualization - Edo State 2025
+            </h2>
+            <div class="map-container">
+                <div class="text-center">
+                    <i class="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600">Interactive Cadastral Map with GIS Integration</p>
+                    <p class="text-sm text-gray-500 mt-2">Real-time coordinate tracking and RECCE diagram integration</p>
+                    <div class="mt-4 text-xs text-gray-400">
+                        <p>Click on beacon markers to view coordinates and details</p>
+                    </div>
+                </div>
+                <div class="beacon-marker" style="top: 20%;
+left: 30%;" onclick="showBeaconInfo('SC/ED AA0001AZ', '6.3350', '5.6037')">
+                    <i class="fas fa-map-pin" title="SC/ED AA0001AZ - Origin Point"></i>
+                </div>
+                <div class="beacon-marker" style="top: 40%;
+left: 60%;" onclick="showBeaconInfo('SC/ED AA0002BK', '6.3360', '5.6047')">
+                    <i class="fas fa-map-pin" title="SC/ED AA0002BK"></i>
+                </div>
+                <div class="beacon-marker" style="top: 60%;
+left: 25%;" onclick="showBeaconInfo('SC/ED AA0003BN', '6.3340', '5.6027')">
+                    <i class="fas fa-map-pin" title="SC/ED AA0003BN"></i>
+                </div>
+                <div class="beacon-marker" style="top: 35%;
+left: 70%;" onclick="showBeaconInfo('SC/ED AA0004ZG', '6.3370', '5.6057')">
+                    <i class="fas fa-map-pin" title="SC/ED AA0004ZG"></i>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fas fa-clock text-orange-600 mr-2"></i> Recent Beacon Activities
+            </h2>
+            <div id="activityLog" class="batch-results space-y-3">
+                <div class="activity-item flex items-center justify-between text-gray-700">
+                    <div>
+                        <p class="font-medium">System Initialized for 2025</p>
+                        <p class="text-xs text-gray-500">All quotas reset, new beacon numbering started.</p>
+                    </div>
+                    <span class="text-xs text-gray-400">Jan 1, 2025</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
+            <h2 class="text-xl font-bold mb-6 flex 
+items-center">
+                <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management
+           
+                 <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+        <label for="newPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
+        <input type="text" id="newPrefix" placeholder="Enter 2-letter prefix"
+            class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+    </div>
+    <div>
+        <label for="newName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
+        <input type="text" id="newName" placeholder="Enter full name"
+            class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+    </div>
+</div>
+<button type="button" id="addSurveyorBtn" class="bg-green-600 text-white px-4 py-3 rounded md hover:bg-green-700 transition-colors duration-200">
+    <i class="fas fa-user-plus mr-1"></i> Add Surveyor
+</button>
+                  <div class="mt-8 pt-4 border-t border-gray-200">
+    <h4 class="text-lg font-semibold mb-3 text-blue-800">Bulk Add Surveyors (CSV)</h4>
+    <p class="text-sm text-gray-600 mb-4">Upload a CSV file with two columns: `Prefix,Name` (e.g., "AB,John Doe"). Each row will be a new surveyor.</p>
+    <div class="file-upload-area" id="csvUploadArea">
+        <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+        <p class="text-gray-500"><i class="fas fa-file-csv text-2xl mb-2"></i></p>
+        <p class="text-gray-500 text-sm">Drag & drop your CSV here, or click to browse</p>
+    </div>
+    <div id="csvFileNameDisplay" class="text-sm text-gray-600 mt-2"></div>
+    <button type="button" id="uploadCsvBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mt-4">
+        <i class="fas fa-upload mr-1"></i> Upload CSV
+    </button>
+</div>
+                </div>
+            </div>
+            <div class="mt-6">
+                <button onclick="downloadCurrentQuarterCSV()" class="bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 mr-2 transition-colors duration-200">
+                    <i class="fas fa-download mr-1"></i> Download Current Quarter Usage
+                </button>
+                <button onclick="downloadAllQuartersCSV()" class="bg-indigo-600 text-white px-4 py-3 rounded-md hover:bg-indigo-700 
+transition-colors duration-200">
+                    <i class="fas fa-file-csv mr-1"></i> Download All Quarters Usage
+                </button>
+            </div>
+        </div>
+        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fas fa-user-magnifying-glass text-blue-600 mr-2"></i> Search Surveyor
+            </h2>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search by Surveyor Name</label>
+                <div class="flex space-x-2">
+                    <input type="text" id="searchSurveyorName" class="flex-grow p-3 border border
+gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter surveyor's full name" />
+                    <button id="searchSurveyorBtn" class="bg-blue-600 text-white px-4 py-3 rounded
+md hover:bg-blue-700 transition-colors duration-200">
+                   
+                        <i class="fas fa-search mr-1"></i> Search
+                    </button>
+                </div>
+            </div>
+            <div id="surveyorSearchResults" class="search-results-card hidden">
+                <h3 class="font-bold text-gray-800 mb-3">Search Results:</h3>
+                <div id="surveyorDetails">
+                    </div>
+            </div>
+        </div>
+    </div>
+    <footer class="mt-12 text-center text-gray-600 text-sm py-6">
+        <hr class="my-6 border-gray-300">
+        <p> Courtesy Development by <strong>Caesar Oviawe</strong> in collaboration with <strong>Surv.
+Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obtained from <a href="https://www.nisedostate.org" class="text-blue-600 underline hover:text-blue-800" target="_blank">NIS Edo State Website</a> </p>
+    </footer>
+    <script>
         // Global variables for date and surveyor data
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
@@ -375,7 +811,7 @@ medium green */
         let surveyors = {};
         // Surveyor beacon usage: { "Prefix": { "YYYY-QX": count, ... } } (will be populated from Firestore)
         // Initialized to "AA0000" and will be advanced based on historical data loaded from Firestore.
-        let surveyorBeaconUsage = {};
+        let surveyorBeaconUsage = {}; 
         let lastBeaconSerialNum = "AA0000"; // Global variable to keep track of the last generated serial in "AA0000" format
 
         // Global Set to store all beacon IDs generated in the current session for validation
@@ -386,6 +822,7 @@ medium green */
         let activityLog = [];
 
         // DOM elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
         const surveyorSelect = document.getElementById("surveyorSelect");
         const surveyorQuotaDisplay = document.getElementById("surveyorQuota");
         const beaconForm = document.getElementById("beaconForm");
@@ -424,173 +861,6 @@ medium green */
         const searchSurveyorBtn = document.getElementById("searchSurveyorBtn");
         const surveyorSearchResultsDiv = document.getElementById("surveyorSearchResults");
         const surveyorDetailsDiv = document.getElementById("surveyorDetails");
-
-        // Get references to the "Add Surveyor" button and its input fields
-        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Ensure your button has this ID now
-        // newPrefixInput and newNameInput are already declared above this line
-
-        // Add event listener for the "Add Surveyor" button
-        addSurveyorBtn.addEventListener('click', async () => {
-            const prefix = newPrefixInput.value.trim().toUpperCase(); // Convert to uppercase for consistency
-            const name = newNameInput.value.trim();
-
-            if (!prefix || !name) {
-                showNotification('Please enter both Prefix and Surveyor Name.', 'error');
-                return;
-            }
-
-            try {
-                // Use setDoc to create/overwrite a document with the prefix as its ID
-                await setDoc(doc(db, "surveyors", prefix), {
-                    name: name,
-                    createdAt: new Date(),
-                    // You might want to add initial quota usage here, e.g.,
-                    // usage: { "2025-Q1": 0 }
-                });
-
-                showNotification(`Surveyor "${name}" (${prefix}) added successfully!`, 'success');
-                console.log("New surveyor added with ID:", prefix);
-
-                // Clear the input fields
-                newPrefixInput.value = '';
-                newNameInput.value = '';
-
-                // Optionally, reload surveyor data into the select dropdown if you have that functionality
-                // await loadSurveyorData(); // Assuming you have a function to load surveyors into a dropdown
-
-            } catch (e) {
-                console.error("Error adding new surveyor:", e);
-                showNotification(`Error adding surveyor: ${e.message}`, 'error');
-            }
-        });
-
-        // DOM elements for CSV upload
-        const csvUploadArea = document.getElementById('csvUploadArea');
-        const csvFileInput = document.getElementById('csvFileInput');
-        const csvFileNameDisplay = document.getElementById('csvFileNameDisplay');
-        const uploadCsvBtn = document.getElementById('uploadCsvBtn');
-
-        // CSV File Upload Logic
-        csvUploadArea.addEventListener('click', () => {
-            csvFileInput.click();
-        });
-
-        csvFileInput.addEventListener('change', () => {
-            if (csvFileInput.files.length > 0) {
-                csvFileNameDisplay.innerText = `Selected file: ${csvFileInput.files[0].name}`;
-            } else {
-                csvFileNameDisplay.innerText = '';
-            }
-        });
-
-        csvUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            csvUploadArea.classList.add('dragover');
-        });
-
-        csvUploadArea.addEventListener('dragleave', () => {
-            csvUploadArea.classList.remove('dragover');
-        });
-
-        csvUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            csvUploadArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                csvFileInput.files = e.dataTransfer.files;
-                csvFileNameDisplay.innerText = `Selected file: ${csvFileInput.files[0].name}`;
-            }
-        });
-
-        // Event listener for the "Upload CSV" button
-        uploadCsvBtn.addEventListener('click', async () => {
-            if (csvFileInput.files.length === 0) {
-                showNotification('Please select a CSV file to upload.', 'warning');
-                return;
-            }
-
-            const file = csvFileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter out empty lines
-
-                if (lines.length <= 1) { // Check for header + at least one data row
-                    showNotification('CSV file is empty or contains only headers.', 'error');
-                    return;
-                }
-
-                const batch = db.batch(); // Start a new batch write
-                let successfulAdds = 0;
-                let failedAdds = 0;
-                let overwrittenCount = 0; // To track if existing prefixes are overwritten
-
-                // Skip header row
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i];
-                    const parts = line.split(',');
-
-                    // Basic CSV format: Prefix,Name
-                    if (parts.length >= 2) {
-                        const prefix = parts[0].trim().toUpperCase();
-                        const name = parts[1].trim();
-
-                        if (prefix && name) {
-                            const surveyorRef = doc(db, "surveyors", prefix);
-                            batch.set(surveyorRef, {
-                                name: name,
-                                createdAt: new Date(),
-                                // Add other fields if your CSV has them, e.g.,
-                                // email: parts[2] ? parts[2].trim() : '',
-                                // phoneNumber: parts[3] ? parts[3].trim() : '',
-                            }, { merge: true }); // Use merge: true to avoid overwriting existing data if adding fields
-                            successfulAdds++;
-                        } else {
-                            console.warn(`Skipping malformed row: ${line}`);
-                            failedAdds++;
-                        }
-                    } else {
-                        console.warn(`Skipping malformed row (not enough columns): ${line}`);
-                        failedAdds++;
-                    }
-                }
-
-                if (successfulAdds === 0) {
-                    showNotification('No valid surveyor data found in CSV.', 'error');
-                    return;
-                }
-
-                try {
-                    await batch.commit(); // Commit the batch write
-                    let message = `Successfully added/updated ${successfulAdds} surveyors from CSV!`;
-                    if (failedAdds > 0) {
-                        message += ` (${failedAdds} rows skipped due to errors or missing data.)`;
-                    }
-                    showNotification(message, 'success', 5000);
-                    console.log(`CSV upload complete. Added/Updated: ${successfulAdds}, Skipped: ${failedAdds}`);
-
-                    // Optionally, clear file input and display
-                    csvFileInput.value = '';
-                    csvFileNameDisplay.innerText = '';
-
-                    // You might want to reload surveyor data into your select dropdown here
-                    // if you have a loadSurveyorData() function.
-                    // await loadSurveyorData();
-
-                } catch (error) {
-                    console.error("Error uploading CSV batch:", error);
-                    showNotification(`Error uploading CSV: ${error.message}`, 'error', 5000);
-                }
-            };
-
-            reader.onerror = () => {
-                showNotification('Error reading file. Please try again.', 'error');
-                console.error("FileReader error:", reader.error);
-            };
-
-            reader.readAsText(file); // Read the file as text
-        });
-
 
         // Utility function to show notifications
         function showNotification(message, type = 'info', duration = 3000) {
@@ -727,10 +997,10 @@ medium green */
         function updateStats() {
             // This function would fetch data from Firestore for actual counts
             // For now, we'll use dummy data or session data
-            totalBeaconsStat.innerText = (parseInt(totalBeaconsStat.innerText) +
+            totalBeaconsStat.innerText = (parseInt(totalBeaconsStat.innerText) + 
 beaconsListDiv.children.length).toString();
             parcelsCountStat.innerText = (parseInt(parcelsCountStat.innerText) + 1).toString();
-            gisPointsStat.innerText = (parseInt(gisPointsStat.innerText) +
+            gisPointsStat.innerText = (parseInt(gisPointsStat.innerText) + 
 coordinatesListDiv.children.length).toString();
             activeSurveyorsStat.innerText = Object.keys(surveyors).length; // Update based on loaded surveyors
         }
@@ -955,8 +1225,8 @@ coordinatesListDiv.children.length).toString();
                 showNotification('Please enter a parcel description first.', 'warning');
                 return;
             }
-            const prompt = `Given the following parcel description, please provide a concise summary
-highlighting the key characteristics and purpose of the parcel. Keep it brief and to the point.
+            const prompt = `Given the following parcel description, please provide a concise summary 
+highlighting the key characteristics and purpose of the parcel. Keep it brief and to the point. 
 Original description: "${originalDescription}"`;
             callGeminiAPI(prompt);
         });
@@ -983,7 +1253,6 @@ Original description: "${originalDescription}"`;
             llmOutputContainer.classList.add('hidden');
             showNotification('LLM output cleared.', 'info');
         });
-    }); // End of DOMContentLoaded listener
     </script>
  </body>
  </html>
