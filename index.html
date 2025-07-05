@@ -794,15 +794,61 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
         const currentQuarter = Math.floor(currentDate.getMonth() / 3) + 1; // 1-indexed quarter
 
         // Firebase variables (will be initialized after SDK loads)
-        let app, db, auth;
-        let userId; // Will store the authenticated user's ID
+    let app; // Declare app here
+    let db;  // Declare db here
+    let auth; // Declare auth here
+    let userId; // Will store the authenticated user's ID
 
-        // Function to format the current date as "Month Day, Year"
-        function getFormattedDate(date) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return date.toLocaleDateString('en-US', options);
+    // Function to format the current date as "Month Day, Year"
+    function getFormattedDate(date) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    try {
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
+            authDomain: "beacon-35989.firebaseapp.com",
+            projectId: "beacon-35989",
+            storageBucket: "beacon-35989.appspot.com",
+            messagingSenderId: "130634267193",
+            appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+            measurementId: "G-ZG50RM7P47"
+        };
+
+        // Initialize Firebase and Firestore
+        app = initializeApp(firebaseConfig); // <--- Assign to the outer 'app'
+        const analytics = getAnalytics(app); // analytics can remain const here if only used locally
+        db = getFirestore(app); // <--- Assign to the outer 'db'
+
+        // Fetch the test document
+        const docRef = doc(db, "testCollection", "testDoc");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            console.log("✅ Document data:", docSnap.data());
+            if (systemStatusText) {
+                systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
+            }
+        } else {
+            console.log("❌ No such document!");
+            if (systemStatusText) {
+                systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
+            }
         }
 
+    } catch (error) {
+        console.error("Error during Firebase initialization or data fetch:", error);
+        if (systemStatusText) {
+            systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+        }
+    } finally {
+        // This hides the loading overlay
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
         // Update year displays
         document.getElementById("footerYear").innerText = currentYear;
         document.getElementById("yearText").innerText = currentYear;
