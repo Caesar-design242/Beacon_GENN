@@ -1222,9 +1222,12 @@ coordinatesListDiv.children.length).toString();
         }
 
         // Function to handle beacon form submission
-        beaconForm.addEventListener('submit', async (e) => {
+        beaconForm.addEventListener('submit', async (e) => { // <-- ENSURE 'async' IS HERE
             e.preventDefault();
-            loadingOverlay.classList.remove('hidden');
+            // ... rest of your code ...
+            await new Promise(resolve => setTimeout(resolve, 1500)); // This is the problematic await
+            // ...
+        });
 
             const surveyorPrefix = surveyorSelect.value;
             const beaconCount = parseInt(beaconCountInput.value);
