@@ -288,43 +288,68 @@ medium green */
             100% { transform: rotate(360deg); }
         }
     </style>
-    <script type="module">
-  // ✅ Correct CDN imports (Firebase 11.10.0)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
-  import {
-    getFirestore,
-    collection,
-    doc,
-    getDoc,
-    setDoc,
-    updateDoc,
-    addDoc
-  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-  // ✅ Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA",
-    authDomain: "beacon-35989.firebaseapp.com",
-    projectId: "beacon-35989",
-    storageBucket: "beacon-35989.appspot.com", // ✅ FIXED
-    messagingSenderId: "130634267193",
-    appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-    measurementId: "G-ZG50RM7P47"
-  };
-  // ✅ Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
-  // ✅ Example Firestore read
-  const docRef = doc(db, "testCollection", "testDoc");
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    console.log("✅ Document data:", docSnap.data());
-  } else {
-    console.log("❌ No such document!");
-  }
-</script>
+<script type="module">
+    document.addEventListener('DOMContentLoaded', async () => {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const systemStatusText = document.getElementById('systemStatusText'); // Ensure this ID exists in your HTML for status updates
 
+        try {
+            // Your existing Firebase imports (ensure these paths are correct)
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+            import {
+                getFirestore,
+                collection,
+                doc,
+                getDoc,
+                setDoc,
+                updateDoc,
+                addDoc
+            } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
+                authDomain: "beacon-35989.firebaseapp.com",
+                projectId: "beacon-35989",
+                storageBucket: "beacon-35989.appspot.com",
+                messagingSenderId: "130634267193",
+                appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+                measurementId: "G-ZG50RM7P47"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            const db = getFirestore(app);
+
+            // Fetch the test document
+            const docRef = doc(db, "testCollection", "testDoc");
+            const docSnap = await getDoc(docRef); // Use await here
+
+            if (docSnap.exists()) {
+                console.log("✅ Document data:", docSnap.data());
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
+                }
+            } else {
+                console.log("❌ No such document!");
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
+                }
+            }
+
+        } catch (error) {
+            console.error("Error during Firebase initialization or data fetch:", error);
+            if (systemStatusText) {
+                systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+            }
+        } finally {
+            // This is the crucial part: Hide the loading overlay
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+    });
+</script>
 
  </head>
  <body class="bg-gray-50 min-h-screen">
