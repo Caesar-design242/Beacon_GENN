@@ -289,24 +289,25 @@ medium green */
         }
     </style>
 <script type="module">
+    // ALL import statements MUST be here, at the very top level of the module
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+    import {
+        getFirestore,
+        collection,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        addDoc
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
     document.addEventListener('DOMContentLoaded', async () => {
         const loadingOverlay = document.getElementById('loadingOverlay');
-        const systemStatusText = document.getElementById('systemStatusText'); // Ensure this ID exists in your HTML for status updates
+        const systemStatusText = document.getElementById('systemStatusText');
 
         try {
-            // Your existing Firebase imports (ensure these paths are correct)
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-            import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
-            import {
-                getFirestore,
-                collection,
-                doc,
-                getDoc,
-                setDoc,
-                updateDoc,
-                addDoc
-            } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-
+            // Your Firebase configuration
             const firebaseConfig = {
                 apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
                 authDomain: "beacon-35989.firebaseapp.com",
@@ -317,13 +318,14 @@ medium green */
                 measurementId: "G-ZG50RM7P47"
             };
 
+            // Initialize Firebase and Firestore
             const app = initializeApp(firebaseConfig);
             const analytics = getAnalytics(app);
             const db = getFirestore(app);
 
             // Fetch the test document
             const docRef = doc(db, "testCollection", "testDoc");
-            const docSnap = await getDoc(docRef); // Use await here
+            const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
                 console.log("✅ Document data:", docSnap.data());
@@ -343,14 +345,13 @@ medium green */
                 systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
             }
         } finally {
-            // This is the crucial part: Hide the loading overlay
+            // This hides the loading overlay
             if (loadingOverlay) {
                 loadingOverlay.style.display = 'none';
             }
         }
     });
 </script>
-
  </head>
  <body class="bg-gray-50 min-h-screen">
     <div id="loadingOverlay" class="loading-overlay">
