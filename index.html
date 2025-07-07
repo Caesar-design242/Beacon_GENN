@@ -1289,6 +1289,8 @@ coordinatesListDiv.children.length).toString();
         // Function to handle beacon form submission
 beaconForm.addEventListener('submit', async (e) => { // Correct: 'async' is present
     e.preventDefault();
+    loadingOverlay.classList.remove('hidden'); // Show loading overlay
+
     // ...
     await new Promise(resolve => setTimeout(resolve, 1000)); // Correct: 'await' is inside the async function
     // ...
