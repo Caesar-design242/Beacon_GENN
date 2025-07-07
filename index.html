@@ -344,7 +344,7 @@
                     <div class="file-upload-area" id="csvUploadArea">
                         <input type="file" id="csvFileInput" accept=".csv" class="hidden">
                         <p class="text-gray-500"><i class="fas fa-file-csv text-2xl mb-2"></i></p>
-                        <p class="text-gray-500 text-sm">Drag & drop your CSV here, or click to browse</p>
+                        <p class="text-500 text-sm">Drag & drop your CSV here, or click to browse</p>
                     </div>
                     <div id="csvFileNameDisplay" class="text-sm text-gray-600 mt-2"></div>
                     <button type="button" id="uploadCsvBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-out">
@@ -356,7 +356,7 @@
     </div>
     <footer class="bg-gray-100 text-gray-600 text-center py-6 mt-12 shadow-inner">
         <p>&copy; <span id="currentYearFooter">2025</span> BeaconGen. All rights reserved.</p>
-        <p>Developed with <span class="text-red-500">&hearts;</span> by EdoGIS Solutions. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
+        <p>Developed with <span class="text-red-500">&hearts;</span> by Caesar Oviawe in collaboration with Surv. Kceey Ehibor. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
     </footer>
 
     <script type="module">
@@ -422,13 +422,11 @@
         const generatedUniqueIdSpan = document.getElementById('generatedUniqueId');
         const totalGeneratedSpan = document.getElementById('totalGenerated');
         const displayParcelAreaSpan = document.getElementById('displayParcelArea');
-
         const searchBeaconInput = document.getElementById('searchBeacon');
         const validateBtn = document.getElementById('validateBtn');
         const validationResultsDiv = document.getElementById('validationResults');
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
-
         const newPrefixInput = document.getElementById('newPrefix');
         const newNameInput = document.getElementById('newName');
         const addSurveyorBtn = document.getElementById('addSurveyorBtn');
@@ -437,7 +435,6 @@
         const csvFileNameDisplay = document.getElementById('csvFileNameDisplay');
         const uploadCsvBtn = document.getElementById('uploadCsvBtn');
         const currentYearFooterSpan = document.getElementById('currentYearFooter');
-
 
         // --- Global Application State Variables ---
         let lastBeaconSerialNum = 'AA0000AZ'; // Example initial value
@@ -451,6 +448,37 @@
         const adminId = "admin123"; // Example admin ID
 
         // --- Helper Functions ---
+        async function testFirestoreConnection() {
+            try {
+                // Fetch the test document
+                const docRef = doc(db, "testCollection", "testDoc");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    console.log("✅ Document data:", docSnap.data());
+                    if (systemStatusText) {
+                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
+                    }
+                } else {
+                    console.log("❌ No such document!");
+                    if (systemStatusText) {
+                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error during Firebase initialization or data fetch:", error);
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+                }
+            } finally {
+                // This hides the loading overlay
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+        }
+
         function showNotification(message, type) {
             notificationContainer.textContent = message;
             notificationContainer.className = `notification show ${type}`;
@@ -463,7 +491,6 @@
             const now = new Date();
             const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
             const timestamp = now.toLocaleDateString('en-US', options);
-
             const activityItem = document.createElement('div');
             activityItem.className = 'activity-item flex items-center justify-between text-gray-700';
             activityItem.innerHTML = `
@@ -518,6 +545,7 @@
 
                 const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
                 const querySnapshot = await getDocs(q);
+
                 if (querySnapshot.empty) {
                     isUnique = true;
                 }
@@ -540,584 +568,466 @@
         function updateSurveyorQuotaDisplay(surveyorId) {
             const surveyor = surveyors.find(s => s.id === surveyorId);
             if (surveyor) {
-                userBeaconCountInQuarter = calculateUsageForSurveyor(surveyorId); // Update global usage for current user
-                surveyorQuotaDiv.innerHTML = `Quota: ${userBeaconCountInQuarter}/${beaconLimitPerSurveyor} beacons this quarter.`;
+                userBeaconCountInQuarter = calculateUsageForSurveyor(surveyor.id);
+                surveyorQuotaDiv.textContent = `Beacons used this quarter: ${userBeaconCountInQuarter}/${beaconLimitPerSurveyor}`;
+                surveyorQuotaDiv.className = `mt-2 text-sm ${userBeaconCountInQuarter >= beaconLimitPerSurveyor ? 'text-red-600 font-bold' : 'text-gray-600'}`;
                 if (userBeaconCountInQuarter >= beaconLimitPerSurveyor) {
-                    surveyorQuotaDiv.classList.add('text-red-500');
-                    showNotification('Surveyor has reached their quarterly beacon limit!', 'warning');
-                } else {
-                    surveyorQuotaDiv.classList.remove('text-red-500');
+                    showNotification('Surveyor has reached their beacon generation quota for this quarter!', 'warning');
                 }
             } else {
-                surveyorQuotaDiv.textContent = '';
+                surveyorQuotaDiv.textContent = 'Select a surveyor to see quota.';
+                surveyorQuotaDiv.className = 'mt-2 text-sm text-gray-600';
             }
         }
 
         async function loadSurveyors() {
             try {
+                surveyorSelect.innerHTML = '<option value="">Select Surveyor</option>'; // Clear existing options
+                surveyors = []; // Clear global surveyors array
                 const querySnapshot = await getDocs(collection(db, "surveyors"));
-                surveyors = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                surveyorSelect.innerHTML = '<option value="">Select Surveyor</option>';
-                surveyors.forEach(surveyor => {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    surveyors.push({ id: doc.id, ...data });
                     const option = document.createElement('option');
-                    option.value = surveyor.id;
-                    option.textContent = `${surveyor.name} (${surveyor.prefix})`;
+                    option.value = doc.id;
+                    option.textContent = `${data.prefix} - ${data.name}`;
                     surveyorSelect.appendChild(option);
                 });
+                if (surveyors.length > 0) {
+                    surveyorSelect.value = surveyors[0].id; // Select the first surveyor by default
+                    updateSurveyorQuotaDisplay(surveyors[0].id);
+                }
                 activeSurveyorsSpan.textContent = surveyors.length;
-                showNotification('Surveyors loaded successfully.', 'success');
             } catch (error) {
                 console.error("Error loading surveyors:", error);
-                showNotification('Failed to load surveyors.', 'error');
+                showNotification('Error loading surveyors.', 'error');
             }
         }
 
-        function getSurveyorById(surveyorId) {
-            return surveyors.find(s => s.id === surveyorId);
-        }
-
-        async function findLastBeaconSerial(surveyorPrefix) {
+        async function addSurveyor(prefix, name) {
             try {
-                const beaconsCollectionRef = collection(db, "beacons");
-                const q = query(beaconsCollectionRef,
-                    where("surveyorPrefix", "==", surveyorPrefix),
-                    where("year", "==", currentYear) // Filter by current year
-                    // You might need a more robust query for sorting by serial number if Firestore query rules allow
-                    // For a simple demo, we might just assume we find one or generate from scratch if none.
-                );
+                // Check if a surveyor with the given prefix already exists
+                const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
-                    let lastBeacon = null;
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (!lastBeacon || data.serialNumber > lastBeacon.serialNumber) {
-                            lastBeacon = data;
-                        }
-                    });
-                    return lastBeacon ? lastBeacon.serialNumber : `${surveyorPrefix}0000AZ`; // Fallback
-                } else {
-                    return `${surveyorPrefix}0000AZ`; // Default starting serial for a new prefix in this year
+                    showNotification(`Surveyor with prefix '${prefix}' already exists.`, 'error');
+                    return false;
                 }
+
+                await addDoc(collection(db, "surveyors"), {
+                    prefix: prefix,
+                    name: name,
+                    quota: beaconLimitPerSurveyor, // Initial quota
+                    lastQuotaReset: new Date().toISOString() // Track last reset
+                });
+                showNotification('Surveyor added successfully!', 'success');
+                await loadSurveyors(); // Reload surveyors into dropdown
+                addActivity(`Added new surveyor: ${name} (${prefix}).`);
+                return true;
             } catch (error) {
-                console.error("Error finding last beacon serial:", error);
-                showNotification('Error fetching last beacon serial.', 'error');
-                return `${surveyorPrefix}0000AZ`; // Fallback in case of error
+                console.error("Error adding surveyor:", error);
+                showNotification(`Error adding surveyor: ${error.message}`, 'error');
+                return false;
             }
         }
 
-        async function fetchSystemConfig() {
-            try {
-                const docRef = doc(db, "systemConfig", "mainConfig");
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const config = docSnap.data();
-                    lastBeaconSerialNum = config.lastBeaconSerialNum || lastBeaconSerialNum;
-                    totalBeaconsSpan.textContent = config.totalBeacons || '0';
-                    parcelsCountSpan.textContent = config.parcelsCount || '0';
-                    gisPointsSpan.textContent = config.gisPoints || '0';
-                    addActivity('System configuration loaded from Firestore.');
-                } else {
-                    console.log("No systemConfig document found. Using defaults.");
-                    addActivity('No system configuration found. Initializing with defaults.');
-                }
-            } catch (error) {
-                console.error("Error fetching system config:", error);
-                showNotification('Failed to fetch system configuration.', 'error');
-            } finally {
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none'; // Hide loading overlay when done
-                }
+        function calculateChecksum(text) {
+            let sum = 0;
+            for (let i = 0; i < text.length; i++) {
+                sum += text.charCodeAt(i);
             }
+            return sum % 97; // A common checksum modulo value
         }
 
-        async function updateSystemConfig() {
-            try {
-                const configRef = doc(db, "systemConfig", "mainConfig");
-                await updateDoc(configRef, {
-                    lastBeaconSerialNum: uniqueBeaconIdSpan.textContent.substring(uniqueBeaconIdSpan.textContent.length - 8),
-                    totalBeacons: parseInt(totalBeaconsSpan.textContent),
-                    parcelsCount: parseInt(parcelsCountSpan.textContent),
-                    gisPoints: parseInt(gisPointsSpan.textContent),
-                    lastUpdated: new Date()
-                }, { merge: true }); // Use merge to avoid overwriting other fields
-                addActivity('System configuration updated in Firestore.');
-            } catch (error) {
-                console.error("Error updating system config:", error);
-                showNotification('Failed to update system configuration.', 'error');
-            }
-        }
-
-        function showBeaconInfo(id, lat, lon) {
-            showNotification(`Beacon ID: ${id}, Lat: ${lat}, Lon: ${lon}`, 'info');
-            // You can expand this to display info in a modal or specific div
-        }
-
-        async function validateBeacon(beaconId) {
-            if (!beaconId) {
-                showNotification('Please enter a beacon ID to validate.', 'warning');
-                return;
-            }
-
-            validationContentDiv.innerHTML = '<p class="text-gray-600">Validating...</p>';
-            validationResultsDiv.classList.remove('hidden');
-
-            try {
-                const beaconsCollectionRef = collection(db, "beacons");
-                const q = query(beaconsCollectionRef, where("fullBeaconId", "==", beaconId));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach(doc => {
-                        const beaconData = doc.data();
-                        validationContentDiv.innerHTML = `
-                            <div class="validation-success">
-                                <p class="font-bold text-lg">Beacon Found: ${beaconData.fullBeaconId}</p>
-                                <p><strong>Surveyor:</strong> ${beaconData.surveyorName} (${beaconData.surveyorPrefix})</p>
-                                <p><strong>LGA:</strong> ${beaconData.lga}</p>
-                                <p><strong>Coordinates:</strong> Lat ${beaconData.latitude}, Lon ${beaconData.longitude}</p>
-                                <p><strong>Parcel Area:</strong> ${beaconData.parcelArea} hectares</p>
-                                <p><strong>Description:</strong> ${beaconData.description || 'N/A'}</p>
-                                <p><strong>Generated On:</strong> ${new Date(beaconData.timestamp.toDate()).toLocaleDateString()}</p>
-                            </div>
-                        `;
-                        addActivity(`Beacon ${beaconId} validated successfully.`);
-                        showNotification('Beacon validated successfully!', 'success');
-                    });
-                } else {
-                    validationContentDiv.innerHTML = `
-                        <div class="validation-error">
-                            <p class="font-bold text-lg">Beacon Not Found</p>
-                            <p>The beacon ID "${beaconId}" does not exist in the system.</p>
-                        </div>
-                    `;
-                    showNotification('Beacon not found!', 'error');
-                    addActivity(`Attempted validation for unknown beacon: ${beaconId}`);
-                }
-            } catch (error) {
-                console.error("Error validating beacon:", error);
-                validationContentDiv.innerHTML = `
-                    <div class="validation-error">
-                        <p class="font-bold text-lg">Error during validation</p>
-                        <p>An error occurred: ${error.message}</p>
-                    </div>
-                `;
-                showNotification('Error during beacon validation!', 'error');
-            }
+        function showBeaconInfo(id, lat, long) {
+            alert(`Beacon ID: ${id}\nLatitude: ${lat}\nLongitude: ${long}`);
         }
 
         async function callGeminiAPI(prompt) {
-            llmLoadingSpinner.classList.remove('hidden');
             llmOutputContainer.classList.remove('hidden');
-            llmOutputText.textContent = ''; // Clear previous output
+            llmLoadingSpinner.classList.remove('hidden');
+            llmOutputText.innerText = '';
             try {
-                // This is a placeholder. You need a backend endpoint that can securely call the Gemini API.
-                // DO NOT put your Gemini API key directly in client-side code.
-                const response = await fetch('/api/gemini-proxy', { // Example proxy endpoint
+                const response = await fetch('YOUR_GEMINI_API_ENDPOINT', { // Replace with your actual endpoint
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_API_KEY' // Replace with your actual API key or token
+                    },
                     body: JSON.stringify({ prompt: prompt })
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to get response from LLM proxy');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                llmOutputText.textContent = data.text; // Assuming the proxy returns { text: "..." }
-                showNotification('LLM output generated!', 'success');
+                llmOutputText.innerText = data.generatedText; // Adjust based on your API's response structure
+                showNotification('LLM response generated!', 'success');
             } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                llmOutputText.textContent = `Error: ${error.message}. Please try again later.`;
-                showNotification('Error generating LLM output.', 'error');
+                console.error('Error calling Gemini API:', error);
+                llmOutputText.innerText = 'Error generating response. Please try again.';
+                showNotification('Error calling AI service.', 'error');
             } finally {
                 llmLoadingSpinner.classList.add('hidden');
             }
         }
 
-        async function handleFileUpload(file) {
-            // This is a placeholder for actual file upload to Firebase Storage
-            // You would need to enable Firebase Storage and create rules for it.
-            // For now, it just shows the file name.
-            if (!file) return;
 
-            const fileNameDisplay = document.createElement('div');
-            fileNameDisplay.className = 'uploaded-file text-gray-700';
-            fileNameDisplay.innerHTML = `
-                <span><i class="fas fa-file mr-2"></i>${file.name}</span>
-                <span class="text-xs text-gray-500">${(file.size / 1024).toFixed(2)} KB</span>
-            `;
-            uploadedFilesDiv.appendChild(fileNameDisplay);
-            showNotification(`File "${file.name}" uploaded (demo only).`, 'info');
-
-            // In a real application, you would upload to Firebase Storage here:
-            // const storageRef = ref(storage, `recce_diagrams/${file.name}`);
-            // await uploadBytes(storageRef, file);
-            // const downloadURL = await getDownloadURL(storageRef);
-            // console.log("File uploaded to:", downloadURL);
-        }
-
-        // --- Event Listeners and Initial Load ---
+        // --- Main Application Logic (DOMContentLoaded) ---
         document.addEventListener('DOMContentLoaded', async () => {
-            if (loadingOverlay) { // Check if element exists before accessing
-                loadingOverlay.style.display = 'block'; // Show loading overlay on page load
-            }
-
-            // Update footer year
             currentYearFooterSpan.textContent = currentYear;
             yearText.textContent = currentYear;
 
-            // Display current user
-            currentUserSpan.textContent = "Survey Admin"; // Placeholder, integrate actual user auth if available
-
-            // Initialize connection test and fetch config
+            // Initial Firebase connection test and loading overlay hide
             await testFirestoreConnection();
-            await fetchSystemConfig();
-            await loadSurveyors(); // Load surveyors for the select input
 
-            // Populate initial unique beacon ID
-            // This will be updated based on selected surveyor and their last beacon
-            uniqueBeaconIdSpan.textContent = `SC/ED ${lastBeaconSerialNum}`;
+            // Load initial data
+            await loadSurveyors();
 
-            // Event listener for surveyor selection change
-            surveyorSelect.addEventListener('change', async () => {
-                const selectedSurveyorId = surveyorSelect.value;
-                if (selectedSurveyorId) {
-                    const selectedSurveyor = getSurveyorById(selectedSurveyorId);
-                    if (selectedSurveyor) {
-                        const surveyorPrefix = selectedSurveyor.prefix;
-                        uniqueBeaconIdSpan.textContent = `SC/ED ${surveyorPrefix}0000AZ`; // Reset for new surveyor
-                        lastBeaconSerialNum = await findLastBeaconSerial(surveyorPrefix); // Find last for selected surveyor
-                        uniqueBeaconIdSpan.textContent = `SC/ED ${lastBeaconSerialNum}`;
-                        updateSurveyorQuotaDisplay(selectedSurveyorId);
-                        addActivity(`Surveyor changed to: ${selectedSurveyor.name}`);
-                    }
-                } else {
-                    uniqueBeaconIdSpan.textContent = 'SC/ED AA0000AZ'; // Default
-                    surveyorQuotaDiv.textContent = '';
-                }
+            // Set default date for last beacon generated
+            addActivity("System Initialized for 2025");
+
+            // --- Event Listeners ---
+            surveyorSelect.addEventListener('change', (event) => {
+                updateSurveyorQuotaDisplay(event.target.value);
             });
 
-            // Beacon Generation Form Submission
-            beaconForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                showNotification('Generating beacons...', 'info');
+            beaconForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
 
                 const selectedSurveyorId = surveyorSelect.value;
-                const beaconCount = parseInt(beaconCountInput.value);
-                const latitude = parseFloat(latitudeInput.value);
-                const longitude = parseFloat(longitudeInput.value);
-                const parcelArea = parseFloat(parcelAreaInput.value);
-                const lga = lgaSelect.value;
-                const description = descriptionTextarea.value;
-                const recceDiagramFiles = recceDiagramInput.files;
-
-                if (!selectedSurveyorId || !beaconCount || isNaN(latitude) || isNaN(longitude) || isNaN(parcelArea) || !lga || recceDiagramFiles.length === 0) {
-                    showNotification('Please fill all required fields and upload RECCE diagram.', 'error');
+                if (!selectedSurveyorId) {
+                    showNotification('Please select a surveyor.', 'error');
                     return;
                 }
 
-                if (userBeaconCountInQuarter + beaconCount > beaconLimitPerSurveyor) {
-                    showNotification(`Selected surveyor only has ${beaconLimitPerSurveyor - userBeaconCountInQuarter} beacons remaining this quarter. Cannot generate ${beaconCount}.`, 'error');
-                    return;
-                }
-
-                const selectedSurveyor = getSurveyorById(selectedSurveyorId);
-                if (!selectedSurveyor) {
+                const surveyor = surveyors.find(s => s.id === selectedSurveyorId);
+                if (!surveyor) {
                     showNotification('Selected surveyor not found.', 'error');
                     return;
                 }
 
+                const beaconsToGenerate = parseInt(beaconCountInput.value);
+                if (isNaN(beaconsToGenerate) || beaconsToGenerate <= 0) {
+                    showNotification('Please enter a valid number of beacons.', 'error');
+                    return;
+                }
+
+                if (userBeaconCountInQuarter + beaconsToGenerate > beaconLimitPerSurveyor) {
+                    showNotification(`Generating ${beaconsToGenerate} beacons would exceed surveyor's quota for this quarter (${beaconLimitPerSurveyor}). Remaining: ${beaconLimitPerSurveyor - userBeaconCountInQuarter}`, 'error');
+                    return;
+                }
+
+                const latitude = latitudeInput.value;
+                const longitude = longitudeInput.value;
+                if (!latitude || !longitude) {
+                    showNotification('Origin beacon coordinates (Latitude and Longitude) are required.', 'error');
+                    return;
+                }
+
+                const parcelArea = parseFloat(parcelAreaInput.value) || 0;
+                const lga = lgaSelect.value;
+                if (!lga) {
+                    showNotification('Please select a Local Government Area.', 'error');
+                    return;
+                }
+
+                const recceFile = recceDiagramInput.files[0];
+                if (!recceFile) {
+                    showNotification('RECCE Diagram upload is required for GIS integration.', 'error');
+                    return;
+                }
+
+                // Simulate file upload (replace with actual Firebase Storage upload)
+                // In a real app, you'd upload the file to Firebase Storage here and get a download URL
+                // For this demo, we'll just acknowledge the file and move on.
+                showNotification('RECCE Diagram uploaded (simulation).', 'info');
+
                 try {
-                    // Show loading overlay during generation
-                    if (loadingOverlay) {
-                        loadingOverlay.style.display = 'block';
+                    // Fetch the current last beacon number for the selected surveyor's prefix
+                    const surveyorPrefix = surveyor.prefix;
+                    const beaconQuery = query(
+                        collection(db, "beacons"),
+                        where("surveyorPrefix", "==", surveyorPrefix),
+                        // You might also want to order by creation date or a custom serial number for 'last'
+                        // For simplicity, we'll assume a mechanism to get the actual last used.
+                    );
+                    const beaconSnapshot = await getDocs(beaconQuery);
+
+                    // A more robust way to get the *latest* serial, assuming serials are always increasing
+                    let currentLastSerial = surveyorPrefix + '0000AZ'; // Default if no beacons yet
+                    if (!beaconSnapshot.empty) {
+                        const sortedBeacons = beaconSnapshot.docs.map(doc => doc.data().beaconId).sort();
+                        currentLastSerial = sortedBeacons[sortedBeacons.length - 1];
                     }
-                    systemStatusText.innerHTML = '<span class="text-white font-semibold">Generating beacons...</span>';
 
-                    const generated = [];
-                    let currentSerial = lastBeaconSerialNum;
+                    const generatedBatch = [];
+                    const coordinatesBatch = [];
+                    const batch = db.batch(); // Create a new batch for atomic writes
 
-                    for (let i = 0; i < beaconCount; i++) {
-                        currentSerial = generateNextBeaconSerial(currentSerial);
-                        const fullBeaconId = `SC/ED ${currentSerial}`;
-                        generated.push({ fullBeaconId, latitude, longitude, description, parcelArea, lga, surveyorId: selectedSurveyor.id, surveyorName: selectedSurveyor.name, surveyorPrefix: selectedSurveyor.prefix, year: currentYear, timestamp: new Date() });
+                    for (let i = 0; i < beaconsToGenerate; i++) {
+                        currentLastSerial = generateNextBeaconSerial(currentLastSerial);
+                        const beaconId = `SC/ED ${currentLastSerial}`; // Example format
+
+                        // Simulate coordinate generation for other beacons (random variation for demo)
+                        const currentLat = parseFloat(latitude) + (Math.random() - 0.5) * 0.001;
+                        const currentLong = parseFloat(longitude) + (Math.random() - 0.5) * 0.001;
+
+                        const beaconData = {
+                            beaconId: beaconId,
+                            surveyorId: selectedSurveyorId,
+                            surveyorPrefix: surveyorPrefix,
+                            latitude: currentLat.toFixed(5),
+                            longitude: currentLong.toFixed(5),
+                            lga: lga,
+                            parcelArea: parcelArea,
+                            recceDiagramUrl: 'placeholder_url_for_recce_diagram.pdf', // Replace with actual uploaded URL
+                            description: descriptionTextarea.value,
+                            generatedAt: new Date().toISOString(),
+                            // Add a unique ID for the parcel if needed, linking all beacons
+                            parcelUniqueId: `${surveyorPrefix}-${Date.now()}` // Example parcel ID
+                        };
+
+                        const beaconRef = doc(collection(db, "beacons")); // Auto-generated ID
+                        batch.set(beaconRef, beaconData); // Add to batch
+
+                        generatedBatch.push(beaconId);
+                        coordinatesBatch.push({ beaconId: beaconId, latitude: beaconData.latitude, longitude: beaconData.longitude });
                     }
 
-                    // Add generated beacons to Firestore
-                    const batch = db.batch(); // Use batch for multiple writes
-                    const beaconsCollectionRef = collection(db, "beacons");
-                    generated.forEach(beacon => {
-                        const newBeaconRef = doc(beaconsCollectionRef); // Let Firestore generate new ID
-                        batch.set(newBeaconRef, beacon);
-                    });
+                    // Commit the batch write
                     await batch.commit();
 
-                    // Update local state and UI
-                    lastBeaconSerialNum = currentSerial; // Update last beacon serial
-                    userBeaconCountInQuarter += beaconCount; // Update current user's quota
+                    // Update surveyor's quota (consider a Cloud Function for robust quota management)
+                    userBeaconCountInQuarter += beaconsToGenerate;
+                    // In a real app, you would update the surveyor document in Firestore
+                    showNotification(`${beaconsToGenerate} beacons generated and saved successfully!`, 'success');
+                    addActivity(`Generated ${beaconsToGenerate} beacons for ${surveyor.name} (${surveyor.prefix}).`);
 
-                    totalBeaconsSpan.textContent = parseInt(totalBeaconsSpan.textContent) + beaconCount;
-                    parcelsCountSpan.textContent = parseInt(parcelsCountSpan.textContent) + 1; // Increment parcel count per submission
-                    gisPointsSpan.textContent = parseInt(gisPointsSpan.textContent) + 1; // Assuming origin is one GIS point
-
-                    // Display generated beacons
-                    beaconsListDiv.innerHTML = '';
-                    coordinatesListDiv.innerHTML = '';
-                    generated.forEach(beacon => {
-                        const beaconItem = document.createElement('div');
-                        beaconItem.className = 'beacon-item bg-gray-50 p-3 rounded-md shadow-sm';
-                        beaconItem.textContent = beacon.fullBeaconId;
-                        beaconsListDiv.appendChild(beaconItem);
-
-                        const coordItem = document.createElement('p');
-                        coordItem.textContent = `${beacon.fullBeaconId}: Lat ${beacon.latitude}, Lon ${beacon.longitude}`;
-                        coordinatesListDiv.appendChild(coordItem);
-                    });
-
-                    uniqueBeaconIdSpan.textContent = `SC/ED ${lastBeaconSerialNum}`;
-                    generatedUniqueIdSpan.textContent = `SC/ED ${lastBeaconSerialNum}`;
-                    totalGeneratedSpan.textContent = beaconCount;
+                    // Update UI
+                    generatedBeaconsDiv.classList.remove('hidden');
+                    beaconsListDiv.innerHTML = generatedBatch.map(id => `<div class="p-2 bg-green-100 rounded-md text-green-800">${id}</div>`).join('');
+                    coordinatesListDiv.innerHTML = coordinatesBatch.map(coord => `<div class="text-xs text-gray-700">${coord.beaconId}: Lat ${coord.latitude}, Long ${coord.longitude}</div>`).join('');
+                    generatedUniqueIdSpan.textContent = `${surveyorPrefix}-${Date.now()}`; // Example parcel ID
+                    totalGeneratedSpan.textContent = generatedBatch.length;
                     displayParcelAreaSpan.textContent = parcelArea;
 
-                    generatedBeaconsDiv.classList.remove('hidden');
-                    updateSurveyorQuotaDisplay(selectedSurveyorId); // Update display with new usage
-                    addActivity(`Generated ${beaconCount} beacons for ${selectedSurveyor.name} (Parcel Area: ${parcelArea} ha).`);
-                    showNotification('Beacons generated and recorded successfully!', 'success');
+                    // Update total beacons count (from current UI or re-fetch from Firestore)
+                    totalBeaconsSpan.textContent = parseInt(totalBeaconsSpan.textContent) + generatedBatch.length;
+                    parcelsCountSpan.textContent = parseInt(parcelsCountSpan.textContent) + 1; // Assuming each generation is one parcel
+                    gisPointsSpan.textContent = parseInt(gisPointsSpan.textContent) + generatedBatch.length;
+                    updateSurveyorQuotaDisplay(selectedSurveyorId); // Update display after generation
 
-                    // Handle RECCE diagram upload (this is still client-side only demo)
-                    for (const file of Array.from(recceDiagramFiles)) {
-                        await handleFileUpload(file);
-                    }
-
-                    // Update system config in Firestore
-                    await updateSystemConfig();
-
-                    // Clear form (optional)
-                    beaconForm.reset();
-                    uploadedFilesDiv.innerHTML = ''; // Clear uploaded file display
+                    beaconForm.reset(); // Clear the form
+                    uploadedFilesDiv.innerHTML = ''; // Clear uploaded files display
 
                 } catch (error) {
                     console.error("Error generating beacons:", error);
                     showNotification(`Error generating beacons: ${error.message}`, 'error');
-                } finally {
-                    if (loadingOverlay) {
-                        loadingOverlay.style.display = 'none'; // Hide loading overlay
-                    }
-                    await testFirestoreConnection(); // Re-test connection to update status
                 }
             });
 
-            // Description Enhancement/Summarization
-            enhanceDescriptionBtn.addEventListener('click', async () => {
-                const originalDescription = descriptionTextarea.value.trim();
-                if (!originalDescription) {
-                    showNotification('Please enter a parcel description to enhance.', 'warning');
+            searchBeaconInput.addEventListener('input', () => {
+                validationResultsDiv.classList.add('hidden');
+                validationContentDiv.innerHTML = '';
+            });
+
+            validateBtn.addEventListener('click', async () => {
+                const beaconIdToValidate = searchBeaconInput.value.trim();
+                if (!beaconIdToValidate) {
+                    showNotification('Please enter a beacon ID to validate.', 'warning');
                     return;
                 }
-                const prompt = `Given the following parcel description, please provide an enhanced and more detailed version of the parcel description. Expand on key aspects and provide more comprehensive context. Original description: "${originalDescription}"`;
-                await callGeminiAPI(prompt);
+
+                validationResultsDiv.classList.remove('hidden');
+                validationContentDiv.innerHTML = '<p class="text-gray-500">Searching...</p>';
+
+                try {
+                    // Search for the beacon in Firestore
+                    const q = query(collection(db, "beacons"), where("beaconId", "==", beaconIdToValidate));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(docSnap => {
+                            const data = docSnap.data();
+                            validationContentDiv.innerHTML = `
+                                <div class="bg-green-50 p-3 rounded-md border border-green-200">
+                                    <p class="font-bold text-green-700"><i class="fas fa-check-circle mr-1"></i> Beacon Found!</p>
+                                    <p class="text-sm"><strong>ID:</strong> ${data.beaconId}</p>
+                                    <p class="text-sm"><strong>Surveyor:</strong> ${data.surveyorPrefix} (${surveyors.find(s => s.id === data.surveyorId)?.name || 'Unknown'})</p>
+                                    <p class="text-sm"><strong>Coordinates:</strong> Lat ${data.latitude}, Long ${data.longitude}</p>
+                                    <p class="text-sm"><strong>LGA:</strong> ${data.lga}</p>
+                                    <p class="text-sm"><strong>Parcel Area:</strong> ${data.parcelArea} ha</p>
+                                    <p class="text-sm"><strong>Description:</strong> ${data.description}</p>
+                                    <p class="text-sm"><strong>Generated At:</strong> ${new Date(data.generatedAt).toLocaleString()}</p>
+                                    <p class="text-sm text-blue-600 mt-2">This beacon is officially registered and valid.</p>
+                                </div>
+                            `;
+                            addActivity(`Validated beacon: ${beaconIdToValidate}.`);
+                        });
+                        showNotification('Beacon validated successfully!', 'success');
+                    } else {
+                        validationContentDiv.innerHTML = `
+                            <div class="bg-red-50 p-3 rounded-md border border-red-200">
+                                <p class="font-bold text-red-700"><i class="fas fa-times-circle mr-1"></i> Beacon Not Found</p>
+                                <p class="text-sm">The beacon ID "${beaconIdToValidate}" was not found in the system. Please check for typos or ensure it has been generated.</p>
+                            </div>
+                        `;
+                        showNotification('Beacon not found.', 'error');
+                    }
+                } catch (error) {
+                    console.error("Error validating beacon:", error);
+                    validationContentDiv.innerHTML = `
+                        <div class="bg-red-50 p-3 rounded-md border border-red-200">
+                            <p class="font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-1"></i> Error Validating</p>
+                            <p class="text-sm">An error occurred while validating the beacon: ${error.message}</p>
+                        </div>
+                    `;
+                    showNotification(`Error validating beacon: ${error.message}`, 'error');
+                }
             });
 
-            summarizeDescriptionBtn.addEventListener('click', async () => {
-                const originalDescription = descriptionTextarea.value.trim();
-                if (!originalDescription) {
-                    showNotification('Please enter a parcel description to summarize.', 'warning');
+            addSurveyorBtn.addEventListener('click', async () => {
+                const prefix = newPrefixInput.value.trim().toUpperCase();
+                const name = newNameInput.value.trim();
+
+                if (!prefix || prefix.length !== 2 || !/^[A-Z]{2}$/.test(prefix)) {
+                    showNotification('Please enter a valid 2-letter prefix (e.g., AB).', 'error');
                     return;
                 }
-                const prompt = `Given the following parcel description, please provide a concise summary highlighting the key characteristics and purpose of the parcel. Keep it brief and to the point. Original description: "${originalDescription}"`;
-                await callGeminiAPI(prompt);
-            });
-
-            copyLlmOutputBtn.addEventListener('click', () => {
-                const textToCopy = llmOutputText.innerText;
-                if (textToCopy) {
-                    // Using document.execCommand('copy') for better iframe compatibility
-                    const textarea = document.createElement('textarea');
-                    textarea.value = textToCopy;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    try {
-                        document.execCommand('copy');
-                        showNotification('LLM output copied to clipboard!', 'success');
-                    } catch (err) {
-                        console.error('Failed to copy text: ', err);
-                        showNotification('Failed to copy text to clipboard.', 'error');
-                    }
-                    document.body.removeChild(textarea);
+                if (!name) {
+                    showNotification('Please enter the surveyor\'s name.', 'error');
+                    return;
                 }
-            });
 
-            clearLlmOutputBtn.addEventListener('click', () => {
-                llmOutputText.innerText = '';
-                llmOutputContainer.classList.add('hidden');
-                showNotification('LLM output cleared.', 'info');
-            });
-
-
-            // RECCE Diagram File Upload Area
-            ['dragover', 'dragleave', 'drop'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, false);
-            });
-
-            ['dragover'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, () => {
-                    fileUploadArea.classList.add('dragover');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, () => {
-                    fileUploadArea.classList.remove('dragover');
-                }, false);
-            });
-
-            fileUploadArea.addEventListener('drop', (e) => {
-                recceDiagramInput.files = e.dataTransfer.files; // Assign dropped files to input
-                // handleFileUpload(recceDiagramInput.files[0]); // Process the first dropped file
-            }, false);
-
-            fileUploadArea.addEventListener('click', () => {
-                recceDiagramInput.click();
+                const success = await addSurveyor(prefix, name);
+                if (success) {
+                    newPrefixInput.value = '';
+                    newNameInput.value = '';
+                }
             });
 
             recceDiagramInput.addEventListener('change', () => {
-                uploadedFilesDiv.innerHTML = ''; // Clear previous files
+                uploadedFilesDiv.innerHTML = '';
                 if (recceDiagramInput.files.length > 0) {
-                    for (const file of Array.from(recceDiagramInput.files)) {
-                        handleFileUpload(file);
-                    }
-                }
-            });
-
-
-            // Beacon Search and Validation
-            validateBtn.addEventListener('click', () => {
-                validateBeacon(searchBeaconInput.value.trim());
-            });
-
-            searchBeaconInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    validateBeacon(searchBeaconInput.value.trim());
-                }
-            });
-
-            // Surveyor Management
-            addSurveyorBtn.addEventListener('click', async () => {
-                const newPrefix = newPrefixInput.value.trim().toUpperCase();
-                const newName = newNameInput.value.trim();
-
-                if (newPrefix.length !== 2 || !/^[A-Z]{2}$/.test(newPrefix)) {
-                    showNotification('Prefix must be exactly two uppercase letters.', 'error');
-                    return;
-                }
-                if (!newName) {
-                    showNotification('Surveyor name cannot be empty.', 'error');
-                    return;
-                }
-
-                try {
-                    // Check if prefix already exists
-                    const q = query(collection(db, "surveyors"), where("prefix", "==", newPrefix));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        showNotification('A surveyor with this prefix already exists.', 'error');
-                        return;
-                    }
-
-                    await addDoc(collection(db, "surveyors"), {
-                        prefix: newPrefix,
-                        name: newName,
-                        registeredBy: userId,
-                        registeredAt: new Date()
+                    Array.from(recceDiagramInput.files).forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'flex items-center justify-between bg-blue-100 text-blue-800 text-sm px-3 py-2 rounded-md mt-1';
+                        fileItem.innerHTML = `
+                            <span><i class="fas fa-file mr-2"></i>${file.name}</span>
+                            <span>${(file.size / 1024).toFixed(1)} KB</span>
+                        `;
+                        uploadedFilesDiv.appendChild(fileItem);
                     });
-                    showNotification(`Surveyor ${newName} (${newPrefix}) added successfully!`, 'success');
-                    newPrefixInput.value = '';
-                    newNameInput.value = '';
-                    await loadSurveyors(); // Reload surveyors into dropdown
-                    addActivity(`New surveyor added: ${newName} (${newPrefix})`);
-                } catch (error) {
-                    console.error("Error adding surveyor:", error);
-                    showNotification(`Error adding surveyor: ${error.message}`, 'error');
                 }
             });
 
-            // Bulk Add Surveyors (CSV)
-            csvUploadArea.addEventListener('click', () => csvFileInput.click());
-            ['dragover', 'dragleave', 'drop'].forEach(eventName => {
-                csvUploadArea.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (eventName === 'dragover') csvUploadArea.classList.add('dragover');
-                    else csvUploadArea.classList.remove('dragover');
-                }, false);
+            fileUploadArea.addEventListener('click', () => recceDiagramInput.click());
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('border-blue-500', 'bg-blue-50');
             });
-            csvFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    csvFileNameDisplay.textContent = e.target.files[0].name;
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+                recceDiagramInput.files = e.dataTransfer.files;
+                recceDiagramInput.dispatchEvent(new Event('change')); // Trigger change event
+            });
+
+
+            csvUploadArea.addEventListener('click', () => csvFileInput.click());
+            csvUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                csvUploadArea.classList.add('border-blue-500', 'bg-blue-50');
+            });
+            csvUploadArea.addEventListener('dragleave', () => {
+                csvUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            csvUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                csvUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+                csvFileInput.files = e.dataTransfer.files;
+                csvFileInput.dispatchEvent(new Event('change')); // Trigger change event
+            });
+
+            csvFileInput.addEventListener('change', () => {
+                if (csvFileInput.files.length > 0) {
+                    csvFileNameDisplay.textContent = `Selected: ${csvFileInput.files[0].name}`;
                 } else {
                     csvFileNameDisplay.textContent = '';
                 }
             });
-            csvUploadArea.addEventListener('drop', (e) => {
-                csvFileInput.files = e.dataTransfer.files;
-                if (csvFileInput.files.length > 0) {
-                    csvFileNameDisplay.textContent = csvFileInput.files[0].name;
-                }
-            }, false);
 
-            uploadCsvBtn.addEventListener('click', async () => {
-                if (csvFileInput.files.length === 0) {
+            uploadCsvBtn.addEventListener('click', () => {
+                const file = csvFileInput.files[0];
+                if (!file) {
                     showNotification('Please select a CSV file to upload.', 'warning');
                     return;
                 }
-                const file = csvFileInput.files[0];
-                const reader = new FileReader();
 
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    showNotification('Invalid file type. Please upload a CSV file.', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
                 reader.onload = async (e) => {
                     const text = e.target.result;
-                    const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter empty lines
+                    const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter out empty lines
+                    if (lines.length === 0) {
+                        showNotification('CSV file is empty or contains no valid data.', 'warning');
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    const prefixIndex = headers.indexOf('prefix');
+                    const nameIndex = headers.indexOf('name');
+
+                    if (prefixIndex === -1 || nameIndex === -1) {
+                        showNotification('CSV must contain "Prefix" and "Name" columns.', 'error');
+                        return;
+                    }
+
                     const surveyorsToAdd = [];
                     const errors = [];
+                    const existingPrefixes = new Set(surveyors.map(s => s.prefix.toUpperCase())); // Get existing prefixes
 
-                    for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        const parts = line.split(',');
-                        if (parts.length === 2) {
-                            const prefix = parts[0].trim().toUpperCase();
-                            const name = parts[1].trim();
+                    for (let i = 1; i < lines.length; i++) { // Start from 1 to skip header
+                        const parts = lines[i].split(',').map(p => p.trim());
+                        const prefix = parts[prefixIndex] ? parts[prefixIndex].toUpperCase() : '';
+                        const name = parts[nameIndex] || '';
 
-                            if (prefix.length === 2 && /^[A-Z]{2}$/.test(prefix) && name) {
-                                // Check for existing prefix to avoid duplicates
-                                const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
-                                const querySnapshot = await getDocs(q);
-                                if (querySnapshot.empty) {
-                                    surveyorsToAdd.push({ prefix, name });
-                                } else {
-                                    errors.push(`Row ${i + 1}: Prefix "${prefix}" already exists.`);
-                                }
-                            } else {
-                                errors.push(`Row ${i + 1}: Invalid format or data (Prefix: "${prefix}", Name: "${name}").`);
+                        if (prefix && name) {
+                            if (!/^[A-Z]{2}$/.test(prefix)) {
+                                errors.push(`Row ${i + 1}: Invalid prefix format '${prefix}'. Must be 2 uppercase letters.`);
+                                continue;
                             }
+                            if (existingPrefixes.has(prefix)) {
+                                errors.push(`Row ${i + 1}: Surveyor with prefix '${prefix}' already exists. Skipping.`);
+                                continue;
+                            }
+                            surveyorsToAdd.push({ prefix, name });
+                            existingPrefixes.add(prefix); // Add to set to prevent duplicates within the CSV as well
                         } else {
-                            errors.push(`Row ${i + 1}: Incorrect number of columns. Expected 2 (Prefix, Name).`);
+                            errors.push(`Row ${i + 1}: Missing prefix or name.`);
                         }
                     }
 
                     if (surveyorsToAdd.length > 0) {
+                        const batch = db.batch();
                         try {
-                            const batch = db.batch();
-                            surveyorsToAdd.forEach(surveyor => {
-                                const newSurveyorRef = doc(collection(db, "surveyors"));
+                            surveyorsToAdd.forEach(surveyorData => {
+                                const newSurveyorRef = doc(collection(db, "surveyors")); // Auto-generate ID
                                 batch.set(newSurveyorRef, {
-                                    prefix: surveyor.prefix,
-                                    name: surveyor.name,
-                                    registeredBy: userId,
-                                    registeredAt: new Date()
+                                    prefix: surveyorData.prefix,
+                                    name: surveyorData.name,
+                                    quota: beaconLimitPerSurveyor,
+                                    lastQuotaReset: new Date().toISOString()
                                 });
                             });
                             await batch.commit();
