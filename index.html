@@ -1316,50 +1316,44 @@ function updateStats() {
 
 // Function to handle beacon form submission (this is your main event listener)
 // Ensure beaconForm element is correctly retrieved, e.g., document.getElementById('beaconFormId');
+// Function to handle beacon form submission
 beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START OF YOUR ASYNC FUNCTION
-    e.preventDefault(); // Prevents the default form submission behavior
-    loadingOverlay.classList.remove('hidden'); // Show loading overlay (Ensure loadingOverlay is defined)
+    e.preventDefault();
+    loadingOverlay.classList.remove('hidden');
 
     // --- 1. Retrieve Form Input Values ---
-    const surveyorPrefix = surveyorSelect.value; // Ensure surveyorSelect is defined
-    const beaconCount = parseInt(beaconCountInput.value); // Ensure beaconCountInput is defined
-    const latitude = latitudeInput.value; // Ensure latitudeInput is defined
-    const longitude = longitudeInput.value; // Ensure longitudeInput is defined
-    const parcelArea = parcelAreaInput.value; // Ensure parcelAreaInput is defined
-    const lga = lgaSelect.value; // Ensure lgaSelect is defined
-    const description = descriptionTextarea.value; // Ensure descriptionTextarea is defined
-    const recceFile = recceDiagramInput.files[0]; // Ensure recceDiagramInput is defined
+    const surveyorPrefix = surveyorSelect.value;
+    const beaconCount = parseInt(beaconCountInput.value);
+    const latitude = latitudeInput.value;
+    const longitude = longitudeInput.value;
+    const parcelArea = parcelAreaInput.value;
+    const lga = lgaSelect.value;
+    const description = descriptionTextarea.value;
+    const recceFile = recceDiagramInput.files[0];
 
     // --- 2. Initial Form Validation ---
     if (!surveyorPrefix || !beaconCount || !latitude || !longitude || !lga || !recceFile) {
         showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
-        loadingOverlay.classList.add('hidden'); // Hide loading overlay if validation fails
-        return; // Exit the function if validation fails
+        loadingOverlay.classList.add('hidden');
+        return;
     }
 
-    // --- 3. Simulate File Upload / Initial Processing Delay ---
-    // (This was the problematic await, now correctly placed inside the async function)
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call / processing
+    // --- 3. Simulate Initial Processing Delay ---
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // --- 4. Generate PROPOSED beacon numbers and coordinates ---
-    // IMPORTANT: The actual 'lastBeaconSerialNum' used here should be based on a sequence counter
-    // managed at the *application submission* level, not the *issued* level.
-    // For simplicity here, we'll continue using the existing lastBeaconSerialNum, but
-    // in a real system, you'd need a separate sequence for "application IDs" or "pending beacon numbers".
-    // For this example, let's assume `lastBeaconSerialNum` is what we propose.
-    // We'll increment it just for the proposal, but it won't affect the *global issued* `lastBeaconSerialNum` yet.
     const { beacons: proposedBeacons, coordinates: proposedCoordinates } = generateBeacons(
         beaconCount, surveyorPrefix, latitude, longitude, parcelArea, lga
     );
 
     // --- 5. Upload RECCE file to Firebase Storage ---
     let recceFileUrl = '';
-    let recceFileName = recceFile.name; // Use the name from the input file
+    let recceFileName = recceFile.name;
 
     try {
-        // You'll need to add Firebase Storage SDK and logic here
+        // Firebase Storage SDK and logic (uncomment and implement when ready)
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
-        // const storage = getStorage(app); // Assuming 'app' is your Firebase app instance
+        // const storage = getStorage(app);
         // const storageRef = ref(storage, `recce_diagrams/${surveyorPrefix}/${recceFile.name}_${Date.now()}`);
         // await uploadBytes(storageRef, recceFile);
         // recceFileUrl = await getDownloadURL(storageRef);
@@ -1373,37 +1367,28 @@ beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START O
         console.error("Error uploading RECCE file:", error);
         showNotification(`Error uploading RECCE diagram: ${error.message}`, 'error');
         loadingOverlay.classList.add('hidden');
-        return; // Exit if file upload fails
+        return;
     }
 
-    // --- 6. (Optional) Specific RECCE File Validation if needed after upload ---
-    // This check is redundant if !recceFile is already checked at the beginning.
-    // However, if there was a specific reason for this check here (e.g., after a simulated GIS process),
-    // then it can remain. Otherwise, it can be removed.
-    // if (!recceFile) {
-    //     showNotification('RECCE Diagram is required for GIS integration.', 'error');
-    //     loadingOverlay.classList.add('hidden');
-    //     return;
-    // }
+    // --- 6. Simulate GIS Processing Delay ---
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // --- 7. Simulate GIS Processing Delay (if separate from file upload) ---
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate GIS processing API call
-
-    // --- 8. Display Results & Update UI ---
-    // Using proposedBeacons and proposedCoordinates from step 4
+    // --- 7. Display Results & Update UI ---
     displayGeneratedBeacons(proposedBeacons, proposedCoordinates, `SC/ED ${surveyorPrefix}${lastBeaconSerialNum}AZ`, beaconCount, parcelArea);
     updateStats();
-    addActivity(`Generated ${beaconCount} beacons for ${surveyorPrefix} in ${lga}.`); // Ensure addActivity is defined
+    addActivity(`Generated ${beaconCount} beacons for ${surveyorPrefix} in ${lga}.`);
 
-    // --- 9. Save Application to Firestore ---
+    // --- 8. Save Application and Update Surveyor Usage in Firestore ---
     try {
-        // Ensure 'db', 'collection', 'addDoc' are imported from Firebase Firestore SDK
-        // e.g., import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+        // Ensure Firestore SDK functions (addDoc, collection, doc, getDoc, updateDoc, setDoc)
+        // are imported and 'db' is initialized.
+        // e.g., import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
         // const db = getFirestore(app);
 
+        // First, save the beacon application
         await addDoc(collection(db, "beaconApplications"), {
             surveyorPrefix,
-            surveyorName: surveyors[surveyorPrefix], // Assuming surveyors object is loaded
+            surveyorName: surveyors[surveyorPrefix],
             beaconCount,
             latitude,
             longitude,
@@ -1412,49 +1397,57 @@ beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START O
             description,
             recceFileName,
             recceFileUrl,
-            generatedBeacons: proposedBeacons, // Store the proposed beacons
+            generatedBeacons: proposedBeacons,
             generatedCoordinates: proposedCoordinates,
-            status: "Pending Approval", // Set initial status
+            status: "Pending Approval",
             appliedAt: new Date(),
-            applicantUid: userId // Store the UID of the surveyor (Assuming userId is defined)
+            applicantUid: userId
         });
 
-        showNotification('Beacon application submitted for approval!', 'success', 5000);
+        // --- Update surveyor usage quota ---
+        // Declare currentYear and currentQuarter ONLY ONCE inside this function
+        const currentYear = new Date().getFullYear();
+        const currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1;
+        const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
+
+        const surveyorDocRef = doc(db, "surveyors", surveyorPrefix);
+        const surveyorDocSnap = await getDoc(surveyorDocRef);
+
+        let currentUsage = 0;
+        if (surveyorDocSnap.exists() && surveyorDocSnap.data().usage && surveyorDocSnap.data().usage[currentQuarterKey]) {
+            currentUsage = surveyorDocSnap.data().usage[currentQuarterKey];
+        }
+
+        await updateDoc(surveyorDocRef, {
+            [`usage.${currentQuarterKey}`]: currentUsage + beaconCount,
+            lastBeaconSerialNum: lastBeaconSerialNum // Save the last serial for this surveyor/system
+        }, { merge: true });
+
+        // Also update the global lastBeaconSerialNum in a separate document or a specific field in the system config.
+        await setDoc(doc(db, "systemConfig", "beaconing"), { lastBeaconSerialNum: lastBeaconSerialNum }, { merge: true });
+
+        showNotification('Beacon application submitted for approval and usage updated!', 'success', 5000);
         addActivity(`Surveyor ${surveyorPrefix} submitted an application for ${beaconCount} beacons.`);
 
-        // --- 10. Clear Form and Hide Sections ---
-        beaconForm.reset(); // Resets all form fields
-        recceDiagramInput.value = ''; // Manually clear file input
-        uploadedFilesDiv.innerHTML = ''; // Clear uploaded files display (Ensure uploadedFilesDiv is defined)
-        llmOutputText.innerText = ''; // Clear LLM output (Ensure llmOutputText is defined)
-        llmOutputContainer.classList.add('hidden'); // Hide LLM output container (Ensure llmOutputContainer is defined)
+        // --- 9. Clear Form and Hide Sections ---
+        beaconForm.reset();
+        recceDiagramInput.value = '';
+        uploadedFilesDiv.innerHTML = '';
+        llmOutputText.innerText = '';
+        llmOutputContainer.classList.add('hidden');
         generatedBeaconsDiv.classList.add('hidden'); // Hide generated beacons section
+        
+        // Reload surveyor data if loadSurveyorData is defined and needed here
+        await loadSurveyorData();
 
     } catch (error) {
-        console.error("Error submitting beacon application:", error);
+        console.error("Error submitting beacon application or updating usage:", error);
         showNotification(`Error submitting application: ${error.message}`, 'error');
     } finally {
-        // This runs regardless of success or failure in the try block
-        loadingOverlay.classList.add('hidden'); // Always hide loading overlay
+        loadingOverlay.classList.add('hidden');
     }
 }); // <--- THIS IS THE FINAL CLOSING BRACE FOR THE beaconForm.addEventListener
-                // Update surveyor usage quota
-	// Your provided snippet must be placed here, inside this async function:
-  	  const currentYear = new Date().getFullYear(); // Ensure currentYear is defined
- 	   const currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1; // Ensure 	currentQuarter is defined
-   	 const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
-	    const surveyorDocRef = doc(db, "surveyors", surveyorPrefix); // Ensure doc and db are defined
-    	const surveyorDocSnap = await getDoc(surveyorDocRef); // 'await' is valid here
 
-    let currentUsage = 0;
-    if (surveyorDocSnap.exists() && surveyorDocSnap.data().usage && surveyorDocSnap.data().usage[currentQuarterKey]) {
-        currentUsage = surveyorDocSnap.data().usage[currentQuarterKey];
-    }
-
-                await updateDoc(surveyorDocRef, {
-                    [`usage.${currentQuarterKey}`]: currentUsage + beaconCount,
-                    lastBeaconSerialNum: lastBeaconSerialNum // Save the last serial for this surveyor/system
-                }, { merge: true }); // Merge to avoid overwriting other fields
 
                 // Also update the global lastBeaconSerialNum in a separate document or a specific field in the system config.
                 await setDoc(doc(db, "systemConfig", "beaconing"), { lastBeaconSerialNum: lastBeaconSerialNum }, { merge: true });
