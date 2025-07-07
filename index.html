@@ -1439,14 +1439,17 @@ beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START O
     }
 }); // <--- THIS IS THE FINAL CLOSING BRACE FOR THE beaconForm.addEventListener
                 // Update surveyor usage quota
-                const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
-                const surveyorDocRef = doc(db, "surveyors", surveyorPrefix);
-                const surveyorDocSnap = await getDoc(surveyorDocRef);
+	// Your provided snippet must be placed here, inside this async function:
+  	  const currentYear = new Date().getFullYear(); // Ensure currentYear is defined
+ 	   const currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1; // Ensure 	currentQuarter is defined
+   	 const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
+	    const surveyorDocRef = doc(db, "surveyors", surveyorPrefix); // Ensure doc and db are defined
+    	const surveyorDocSnap = await getDoc(surveyorDocRef); // 'await' is valid here
 
-                let currentUsage = 0;
-                if (surveyorDocSnap.exists() && surveyorDocSnap.data().usage && surveyorDocSnap.data().usage[currentQuarterKey]) {
-                    currentUsage = surveyorDocSnap.data().usage[currentQuarterKey];
-                }
+    let currentUsage = 0;
+    if (surveyorDocSnap.exists() && surveyorDocSnap.data().usage && surveyorDocSnap.data().usage[currentQuarterKey]) {
+        currentUsage = surveyorDocSnap.data().usage[currentQuarterKey];
+    }
 
                 await updateDoc(surveyorDocRef, {
                     [`usage.${currentQuarterKey}`]: currentUsage + beaconCount,
