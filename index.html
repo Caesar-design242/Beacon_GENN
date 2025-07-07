@@ -288,132 +288,7 @@ medium green */
             100% { transform: rotate(360deg); }
         }
     </style>
-<script type="module">
-    // ALL import statements MUST be here, at the very top level of the module
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
-    import {
-        getFirestore,
-        collection,
-        doc,
-        getDoc,
-        setDoc,
-        updateDoc,
-        addDoc,
-	query, // New import
-        where, // New import
-        getDocs // New import
-    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-  import {
-        getAuth, // New import
-        onAuthStateChanged, // New import
-        signInWithEmailAndPassword, // New import
-        signOut // New import
-    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-    // ... rest of your existing imports
-</script>
- 
-// Global Firebase Auth instance
-let auth;  
- document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Firebase and Firestore
-            const app = initializeApp(firebaseConfig);
-            const analytics = getAnalytics(app);
-            const db = getFirestore(app);
-   auth = getAuth(app); // Initialize Auth
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            userId = user.uid;
-            // Fetch user's role (e.g., from a 'users' collection in Firestore)
-            const userDoc = await getDoc(doc(db, "users", userId));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                const userRole = userData.role; // e.g., 'surveyor', 'admin', 'confirmer'
-                document.getElementById('currentUser').innerText = userData.name || user.email;
-
-                // Redirect based on role or show appropriate UI
-                if (userRole === 'confirmer' && window.location.pathname !== '/confirmation_portal.html') {
-                    window.location.href = 'confirmation_portal.html';
-                } else if (userRole === 'surveyor' && window.location.pathname !== '/index.html') {
-                    // Assuming index.html is the surveyor portal
-                    // window.location.href = 'index.html';
-                }
-                // Also update UI visibility based on role (e.g., hide admin panels from surveyors)
-                updateUIVisibilityByRole(userRole);
-
-            } else {
-                console.warn("User document not found for:", userId);
-                // Handle new user or user without a role
-            }
-        } else {
-            // User is signed out. Redirect to login page or show login UI.
-            // window.location.href = 'login.html'; // Example
-            document.getElementById('currentUser').innerText = 'Guest';
-        }
-    });
-
-    // ... rest of your DOMContentLoaded logic
-});
-
-function updateUIVisibilityByRole(role) {
-    // Example: Hide surveyor management from regular surveyors
-    const surveyorManagementDiv = document.querySelector('.mt-8.bg-white.rounded-lg.card-shadow.p-6.fade-in > h2.flex.items-center');
-    if (surveyorManagementDiv) {
-        if (role !== 'admin' && role !== 'confirmer') { // Only 'admin' and 'confirmer' can see this
-            surveyorManagementDiv.parentElement.style.display = 'none';
-        } else {
-            surveyorManagementDiv.parentElement.style.display = 'block';
-        }
-    }
-    // You'd add more such logic for other UI elements that should be role-specific
-}
-
-
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const systemStatusText = document.getElementById('systemStatusText');
-
-        try {
-            // Your Firebase configuration
-            const firebaseConfig = {
-                apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
-                authDomain: "beacon-35989.firebaseapp.com",
-                projectId: "beacon-35989",
-                storageBucket: "beacon-35989.appspot.com",
-                messagingSenderId: "130634267193",
-                appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-                measurementId: "G-ZG50RM7P47"
-            };
-
-
-            // Fetch the test document
-            const docRef = doc(db, "testCollection", "testDoc");
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                console.log("✅ Document data:", docSnap.data());
-                if (systemStatusText) {
-                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
-                }
-            } else {
-                console.log("❌ No such document!");
-                if (systemStatusText) {
-                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
-                }
-            }
-
-        } catch (error) {
-                console.error("Error during Firebase initialization or data fetch:", error);
-                if (systemStatusText) {
-                    systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
-                }
-            } finally {
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none';
-                }
-            }
-       }
-</script>
  </head>
  <body class="bg-gray-50 min-h-screen">
     <div id="loadingOverlay" class="loading-overlay">
@@ -850,7 +725,133 @@ md hover:bg-blue-700 transition-colors duration-200">
 Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obtained from <a href="https://www.nisedostate.org" class="text-blue-600 underline hover:text-blue-800" target="_blank">NIS Edo State Website</a> </p>
     </footer>
     <script>
-        // Global variables for date and surveyor data
+     <script type="module">
+    // ALL import statements MUST be here, at the very top level of the module
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+    import {
+        getFirestore,
+        collection,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        addDoc,
+	query, // New import
+        where, // New import
+        getDocs // New import
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+  import {
+        getAuth, // New import
+        onAuthStateChanged, // New import
+        signInWithEmailAndPassword, // New import
+        signOut // New import
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    // ... rest of your existing imports
+</script>
+ 
+// Global Firebase Auth instance
+let auth;  
+ document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize Firebase and Firestore
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            const db = getFirestore(app);
+   auth = getAuth(app); // Initialize Auth
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userId = user.uid;
+            // Fetch user's role (e.g., from a 'users' collection in Firestore)
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const userRole = userData.role; // e.g., 'surveyor', 'admin', 'confirmer'
+                document.getElementById('currentUser').innerText = userData.name || user.email;
+
+                // Redirect based on role or show appropriate UI
+                if (userRole === 'confirmer' && window.location.pathname !== '/confirmation_portal.html') {
+                    window.location.href = 'confirmation_portal.html';
+                } else if (userRole === 'surveyor' && window.location.pathname !== '/index.html') {
+                    // Assuming index.html is the surveyor portal
+                    // window.location.href = 'index.html';
+                }
+                // Also update UI visibility based on role (e.g., hide admin panels from surveyors)
+                updateUIVisibilityByRole(userRole);
+
+            } else {
+                console.warn("User document not found for:", userId);
+                // Handle new user or user without a role
+            }
+        } else {
+            // User is signed out. Redirect to login page or show login UI.
+            // window.location.href = 'login.html'; // Example
+            document.getElementById('currentUser').innerText = 'Guest';
+        }
+    });
+
+    // ... rest of your DOMContentLoaded logic
+});
+
+function updateUIVisibilityByRole(role) {
+    // Example: Hide surveyor management from regular surveyors
+    const surveyorManagementDiv = document.querySelector('.mt-8.bg-white.rounded-lg.card-shadow.p-6.fade-in > h2.flex.items-center');
+    if (surveyorManagementDiv) {
+        if (role !== 'admin' && role !== 'confirmer') { // Only 'admin' and 'confirmer' can see this
+            surveyorManagementDiv.parentElement.style.display = 'none';
+        } else {
+            surveyorManagementDiv.parentElement.style.display = 'block';
+        }
+    }
+    // You'd add more such logic for other UI elements that should be role-specific
+}
+
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const systemStatusText = document.getElementById('systemStatusText');
+
+        try {
+            // Your Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
+                authDomain: "beacon-35989.firebaseapp.com",
+                projectId: "beacon-35989",
+                storageBucket: "beacon-35989.appspot.com",
+                messagingSenderId: "130634267193",
+                appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+                measurementId: "G-ZG50RM7P47"
+            };
+
+
+            // Fetch the test document
+            const docRef = doc(db, "testCollection", "testDoc");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                console.log("✅ Document data:", docSnap.data());
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
+                }
+            } else {
+                console.log("❌ No such document!");
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
+                }
+            }
+
+        } catch (error) {
+                console.error("Error during Firebase initialization or data fetch:", error);
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+                }
+            } finally {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+       }
+</script>   
+// Global variables for date and surveyor data
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
         const currentQuarter = Math.floor(currentDate.getMonth() / 3) + 1; // 1-indexed quarter
@@ -867,7 +868,10 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
         return date.toLocaleDateString('en-US', options);
     }
 
-    try {
+  	const loadingOverlay = document.getElementById('loadingOverlay');
+        const systemStatusText = document.getElementById('systemStatusText');
+
+  try {
         // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
@@ -880,9 +884,9 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
         };
 
         // Initialize Firebase and Firestore
-        app = initializeApp(firebaseConfig); // <--- Assign to the outer 'app'
+        const app = initializeApp(firebaseConfig); // <--- Assign to the outer 'app'
         const analytics = getAnalytics(app); // analytics can remain const here if only used locally
-        db = getFirestore(app); // <--- Assign to the outer 'db'
+        const db = getFirestore(app); // <--- Assign to the outer 'db'
 
         // Fetch the test document
         const docRef = doc(db, "testCollection", "testDoc");
