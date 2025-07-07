@@ -1447,26 +1447,8 @@ beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START O
         loadingOverlay.classList.add('hidden');
     }
 }); // <--- THIS IS THE FINAL CLOSING BRACE FOR THE beaconForm.addEventListener
-
-
-                
-                showNotification('Beacon data saved to cloud!', 'success');
-                // Clear form or reset
-                beaconForm.reset();
-                recceDiagramInput.value = ''; // Clear file input
-                uploadedFilesDiv.innerHTML = '';
-                llmOutputText.innerText = '';
-                llmOutputContainer.classList.add('hidden');
-                await loadSurveyorData(); // Reload to update quotas
-            } catch (error) {
-                console.error("Error saving beacon data or updating usage:", error);
-                showNotification(`Error saving data: ${error.message}`, 'error');
-            } finally {
-                loadingOverlay.classList.add('hidden');
-            }
-        });
-
-        // Function to validate beacon number
+           
+             // Function to validate beacon number
         validateBtn.addEventListener('click', () => {
             const beaconToSearch = searchBeaconInput.value.trim().toUpperCase();
             validationContentDiv.innerHTML = '';
