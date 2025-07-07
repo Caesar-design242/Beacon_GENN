@@ -403,17 +403,16 @@ function updateUIVisibilityByRole(role) {
             }
 
         } catch (error) {
-            console.error("Error during Firebase initialization or data fetch:", error);
-            if (systemStatusText) {
-                systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+                console.error("Error during Firebase initialization or data fetch:", error);
+                if (systemStatusText) {
+                    systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
+                }
+            } finally {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
             }
-        } finally {
-            // This hides the loading overlay
-            if (loadingOverlay) {
-                loadingOverlay.style.display = 'none';
-            }
-        }
-    });
+       }
 </script>
  </head>
  <body class="bg-gray-50 min-h-screen">
