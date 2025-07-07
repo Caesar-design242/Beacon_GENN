@@ -1223,105 +1223,125 @@ Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obt
             return prefix + String(num).padStart(4, '0');
         }
 
-        // Function to generate a batch of beacon numbers
-        function generateBeacons(count, surveyorPrefix, originLat, originLon, parcelArea, lga) {
-            const generated = [];
-            const coordinates = [];
-            let currentSerial = lastBeaconSerialNum;
+        // Ensure helper functions are defined once in the appropriate scope (e.g., at the top level of your script)
 
-            for (let i = 0; i < count; i++) {
-                currentSerial = generateNextBeaconSerial(currentSerial);
-                const beaconId = `SC/ED ${surveyorPrefix}${currentSerial}AZ`;
-                generated.push(beaconId);
-                // For simplicity, other beacon coordinates are just incremented from origin
-                // In a real GIS, this would involve spatial algorithms and RECCE diagram analysis.
-                coordinates.push({
-                    beaconId: beaconId,
-                    latitude: (parseFloat(originLat) + (i * 0.00005)).toFixed(5),
-                    longitude: (parseFloat(originLon) + (i * 0.00005)).toFixed(6)
-                });
-            }
+// Function to generate the next beacon serial number (assuming this is defined elsewhere)
+// Example placeholder:
+// let lastBeaconSerialNum = 'AA0000'; // Initialize appropriately
 
-            lastBeaconSerialNum = currentSerial; // Update the global tracker
-            return { beacons: generated, coordinates: coordinates };
-        }
+// function generateNextBeaconSerial(currentSerial) {
+//     // Your existing logic for incrementing serial (e.g., AA0001 -> AA0002, AA9999 -> AB0001)
+//     // This function is essential for 'generateBeacons'
+//     const alphaPart = currentSerial.substring(0, 2);
+//     let numPart = parseInt(currentSerial.substring(2, 6));
 
-        // Function to display generated beacons
-        function displayGeneratedBeacons(beacons, coords, uniqueId, totalCount, area) {
-            beaconsListDiv.innerHTML = '';
-            coords.forEach(coord => {
-                const beaconItem = document.createElement('div');
-                beaconItem.className = 'beacon-item flex justify-between items-center';
-                beaconItem.innerHTML = `
-                    <p class="font-semibold text-gray-800">${coord.beaconId}</p>
-                    <p class="text-sm text-gray-600">Lat: ${coord.latitude}, Lon: ${coord.longitude}</p>
-                `;
-                beaconsListDiv.appendChild(beaconItem);
-            });
+//     numPart++;
+//     if (numPart > 9999) {
+//         numPart = 1;
+//         let char1 = alphaPart.charCodeAt(0);
+//         let char2 = alphaPart.charCodeAt(1);
 
-            coordinatesListDiv.innerHTML = '';
-            coords.forEach(coord => {
-                const coordItem = document.createElement('p');
-                coordItem.className = 'text-sm';
-                coordItem.innerText = `${coord.beaconId}: Lat ${coord.latitude}, Lon ${coord.longitude}`;
-                coordinatesListDiv.appendChild(coordItem);
-            });
+//         char2++;
+//         if (char2 > 'Z'.charCodeAt(0)) {
+//             char2 = 'A'.charCodeAt(0);
+//             char1++;
+//             if (char1 > 'Z'.charCodeAt(0)) {
+//                 // Max capacity reached, handle error or reset
+//                 char1 = 'A'.charCodeAt(0); // For example, wrap around
+//             }
+//         }
+//         return String.fromCharCode(char1) + String.fromCharCode(char2) + String(numPart).padStart(4, '0');
+//     }
+//     return alphaPart + String(numPart).padStart(4, '0');
+// }
 
-            generatedUniqueIdSpan.innerText = uniqueId;
-            totalGeneratedSpan.innerText = totalCount;
-            displayParcelAreaSpan.innerText = area;
-            generatedBeaconsDiv.classList.remove('hidden');
-            showNotification('Beacons generated successfully!', 'success');
-        }
 
-        // Function to update statistics
-        function updateStats() {
-            // This function would fetch data from Firestore for actual counts
-            // For now, we'll use dummy data or session data
-            totalBeaconsStat.innerText = (parseInt(totalBeaconsStat.innerText) + 
-beaconsListDiv.children.length).toString();
-            parcelsCountStat.innerText = (parseInt(parcelsCountStat.innerText) + 1).toString();
-            gisPointsStat.innerText = (parseInt(gisPointsStat.innerText) + 
-coordinatesListDiv.children.length).toString();
-            activeSurveyorsStat.innerText = Object.keys(surveyors).length; // Update based on loaded surveyors
-        }
+// Function to generate a batch of beacon numbers (this function should be outside the submit listener)
+function generateBeacons(count, surveyorPrefix, originLat, originLon, parcelArea, lga) {
+    const generated = [];
+    const coordinates = [];
+    let currentSerial = lastBeaconSerialNum; // Assuming lastBeaconSerialNum is accessible in this scope
 
-        // Function to handle beacon form submission
-beaconForm.addEventListener('submit', async (e) => { // Correct: 'async' is present
-    e.preventDefault();
-    loadingOverlay.classList.remove('hidden'); // Show loading overlay
+    for (let i = 0; i < count; i++) {
+        currentSerial = generateNextBeaconSerial(currentSerial); // Ensure generateNextBeaconSerial is defined
+        const beaconId = `SC/ED ${surveyorPrefix}${currentSerial}AZ`;
+        generated.push(beaconId);
+        coordinates.push({
+            beaconId: beaconId,
+            latitude: (parseFloat(originLat) + (i * 0.00005)).toFixed(5),
+            longitude: (parseFloat(originLon) + (i * 0.00005)).toFixed(6)
+        });
+    }
 
-    // ...
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Correct: 'await' is inside the async function
-    // ...
-});
-    // All form handling logic, including variable declarations and validation,
-    // MUST be inside this event listener's callback function.
+    lastBeaconSerialNum = currentSerial; // Update the global tracker or a persistent store
+    return { beacons: generated, coordinates: coordinates };
+}
 
-    const surveyorPrefix = surveyorSelect.value;
-    const beaconCount = parseInt(beaconCountInput.value);
-    const latitude = latitudeInput.value;
-    const longitude = longitudeInput.value;
-    const parcelArea = parcelAreaInput.value; // Make sure parcelAreaInput is defined
-    const lga = lgaSelect.value;
-    const description = descriptionTextarea.value; // Make sure descriptionTextarea is defined
-    const recceFile = recceDiagramInput.files[0]; // Make sure recceDiagramInput is defined
+// Function to display generated beacons (this function should be outside the submit listener)
+function displayGeneratedBeacons(beacons, coords, uniqueId, totalCount, area) {
+    beaconsListDiv.innerHTML = ''; // Ensure beaconsListDiv is defined
+    coords.forEach(coord => {
+        const beaconItem = document.createElement('div');
+        beaconItem.className = 'beacon-item flex justify-between items-center';
+        beaconItem.innerHTML = `
+            <p class="font-semibold text-gray-800">${coord.beaconId}</p>
+            <p class="text-sm text-gray-600">Lat: ${coord.latitude}, Lon: ${coord.longitude}</p>
+        `;
+        beaconsListDiv.appendChild(beaconItem);
+    });
 
-    // Validation check
+    coordinatesListDiv.innerHTML = ''; // Ensure coordinatesListDiv is defined
+    coords.forEach(coord => {
+        const coordItem = document.createElement('p');
+        coordItem.className = 'text-sm';
+        coordItem.innerText = `${coord.beaconId}: Lat ${coord.latitude}, Lon ${coord.longitude}`;
+        coordinatesListDiv.appendChild(coordItem);
+    });
+
+    generatedUniqueIdSpan.innerText = uniqueId; // Ensure generatedUniqueIdSpan is defined
+    totalGeneratedSpan.innerText = totalCount; // Ensure totalGeneratedSpan is defined
+    displayParcelAreaSpan.innerText = area; // Ensure displayParcelAreaSpan is defined
+    generatedBeaconsDiv.classList.remove('hidden'); // Ensure generatedBeaconsDiv is defined
+    showNotification('Beacons generated successfully!', 'success'); // Ensure showNotification is defined
+}
+
+// Function to update statistics (this function should be outside the submit listener)
+function updateStats() {
+    // Ensure totalBeaconsStat, parcelsCountStat, gisPointsStat, activeSurveyorsStat are defined
+    totalBeaconsStat.innerText = (parseInt(totalBeaconsStat.innerText) + beaconsListDiv.children.length).toString();
+    parcelsCountStat.innerText = (parseInt(parcelsCountStat.innerText) + 1).toString();
+    gisPointsStat.innerText = (parseInt(gisPointsStat.innerText) + coordinatesListDiv.children.length).toString();
+    activeSurveyorsStat.innerText = Object.keys(surveyors).length; // Assuming surveyors object is loaded
+}
+
+// Function to handle beacon form submission (this is your main event listener)
+// Ensure beaconForm element is correctly retrieved, e.g., document.getElementById('beaconFormId');
+beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START OF YOUR ASYNC FUNCTION
+    e.preventDefault(); // Prevents the default form submission behavior
+    loadingOverlay.classList.remove('hidden'); // Show loading overlay (Ensure loadingOverlay is defined)
+
+    // --- 1. Retrieve Form Input Values ---
+    const surveyorPrefix = surveyorSelect.value; // Ensure surveyorSelect is defined
+    const beaconCount = parseInt(beaconCountInput.value); // Ensure beaconCountInput is defined
+    const latitude = latitudeInput.value; // Ensure latitudeInput is defined
+    const longitude = longitudeInput.value; // Ensure longitudeInput is defined
+    const parcelArea = parcelAreaInput.value; // Ensure parcelAreaInput is defined
+    const lga = lgaSelect.value; // Ensure lgaSelect is defined
+    const description = descriptionTextarea.value; // Ensure descriptionTextarea is defined
+    const recceFile = recceDiagramInput.files[0]; // Ensure recceDiagramInput is defined
+
+    // --- 2. Initial Form Validation ---
     if (!surveyorPrefix || !beaconCount || !latitude || !longitude || !lga || !recceFile) {
         showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
         loadingOverlay.classList.add('hidden'); // Hide loading overlay if validation fails
-        return; // This 'return' is now valid because it's inside the function
+        return; // Exit the function if validation fails
     }
 
-    // If validation passes, proceed with the rest of your form submission logic
-    // For example, your problematic await and subsequent code:
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Now this await is correctly placed inside an async function
+    // --- 3. Simulate File Upload / Initial Processing Delay ---
+    // (This was the problematic await, now correctly placed inside the async function)
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call / processing
 
-    // ... rest of your code to process the form data (e.g., send to server, generate numbers) ...
-});
-
-             // --- Generate PROPOSED beacon numbers and coordinates ---
+    // --- 4. Generate PROPOSED beacon numbers and coordinates ---
     // IMPORTANT: The actual 'lastBeaconSerialNum' used here should be based on a sequence counter
     // managed at the *application submission* level, not the *issued* level.
     // For simplicity here, we'll continue using the existing lastBeaconSerialNum, but
@@ -1332,18 +1352,19 @@ beaconForm.addEventListener('submit', async (e) => { // Correct: 'async' is pres
         beaconCount, surveyorPrefix, latitude, longitude, parcelArea, lga
     );
 
-    // Upload RECCE file to Firebase Storage
+    // --- 5. Upload RECCE file to Firebase Storage ---
     let recceFileUrl = '';
-    let recceFileName = recceFile.name;
+    let recceFileName = recceFile.name; // Use the name from the input file
+
     try {
         // You'll need to add Firebase Storage SDK and logic here
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
-        // const storage = getStorage(app);
+        // const storage = getStorage(app); // Assuming 'app' is your Firebase app instance
         // const storageRef = ref(storage, `recce_diagrams/${surveyorPrefix}/${recceFile.name}_${Date.now()}`);
         // await uploadBytes(storageRef, recceFile);
         // recceFileUrl = await getDownloadURL(storageRef);
         // showNotification('RECCE Diagram uploaded successfully!', 'success');
-        
+
         // For now, simulate upload
         await new Promise(resolve => setTimeout(resolve, 1000));
         recceFileUrl = `simulated-url/recce_diagrams/${recceFileName}`;
@@ -1352,67 +1373,71 @@ beaconForm.addEventListener('submit', async (e) => { // Correct: 'async' is pres
         console.error("Error uploading RECCE file:", error);
         showNotification(`Error uploading RECCE diagram: ${error.message}`, 'error');
         loadingOverlay.classList.add('hidden');
-        return;
+        return; // Exit if file upload fails
     }
 
+    // --- 6. (Optional) Specific RECCE File Validation if needed after upload ---
+    // This check is redundant if !recceFile is already checked at the beginning.
+    // However, if there was a specific reason for this check here (e.g., after a simulated GIS process),
+    // then it can remain. Otherwise, it can be removed.
+    // if (!recceFile) {
+    //     showNotification('RECCE Diagram is required for GIS integration.', 'error');
+    //     loadingOverlay.classList.add('hidden');
+    //     return;
+    // }
 
-if (!recceFile) {
-                showNotification('RECCE Diagram is required for GIS integration.', 'error');
-                loadingOverlay.classList.add('hidden');
-                return;
-            }
+    // --- 7. Simulate GIS Processing Delay (if separate from file upload) ---
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate GIS processing API call
 
-            // Simulate file upload and GIS processing
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+    // --- 8. Display Results & Update UI ---
+    // Using proposedBeacons and proposedCoordinates from step 4
+    displayGeneratedBeacons(proposedBeacons, proposedCoordinates, `SC/ED ${surveyorPrefix}${lastBeaconSerialNum}AZ`, beaconCount, parcelArea);
+    updateStats();
+    addActivity(`Generated ${beaconCount} beacons for ${surveyorPrefix} in ${lga}.`); // Ensure addActivity is defined
 
-            const { beacons, coordinates } = generateBeacons(beaconCount, surveyorPrefix, latitude, longitude, parcelArea, lga);
-            const uniqueId = `SC/ED ${surveyorPrefix}${lastBeaconSerialNum}AZ`;
+    // --- 9. Save Application to Firestore ---
+    try {
+        // Ensure 'db', 'collection', 'addDoc' are imported from Firebase Firestore SDK
+        // e.g., import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+        // const db = getFirestore(app);
 
-            displayGeneratedBeacons(beacons, coordinates, uniqueId, beaconCount, parcelArea);
-            updateStats();
-            addActivity(`Generated ${beaconCount} beacons for ${surveyorPrefix} in ${lga}.`);
-
-            // Save to Firestore (simplified - actual implementation needs proper data structure)
-            try {
-                await addDoc(collection(db, "beaconApplications"), {
-                    surveyorPrefix,
-            	surveyorName: surveyors[surveyorPrefix], // Assuming surveyors object is loaded
-                    beaconCount,
-                    latitude,
-                    longitude,
-                    parcelArea,
-                    lga,
-                    description,
-                    recceFileName,
+        await addDoc(collection(db, "beaconApplications"), {
+            surveyorPrefix,
+            surveyorName: surveyors[surveyorPrefix], // Assuming surveyors object is loaded
+            beaconCount,
+            latitude,
+            longitude,
+            parcelArea,
+            lga,
+            description,
+            recceFileName,
             recceFileUrl,
             generatedBeacons: proposedBeacons, // Store the proposed beacons
             generatedCoordinates: proposedCoordinates,
             status: "Pending Approval", // Set initial status
             appliedAt: new Date(),
-            applicantUid: userId // Store the UID of the surveyor
+            applicantUid: userId // Store the UID of the surveyor (Assuming userId is defined)
         });
 
         showNotification('Beacon application submitted for approval!', 'success', 5000);
         addActivity(`Surveyor ${surveyorPrefix} submitted an application for ${beaconCount} beacons.`);
 
-        // Clear form
-        beaconForm.reset();
-        recceDiagramInput.value = '';
-        uploadedFilesDiv.innerHTML = '';
-        llmOutputText.innerText = '';
-        llmOutputContainer.classList.add('hidden');
-
-        // Hide generated beacons section (as they are not officially issued yet)
-        generatedBeaconsDiv.classList.add('hidden');
+        // --- 10. Clear Form and Hide Sections ---
+        beaconForm.reset(); // Resets all form fields
+        recceDiagramInput.value = ''; // Manually clear file input
+        uploadedFilesDiv.innerHTML = ''; // Clear uploaded files display (Ensure uploadedFilesDiv is defined)
+        llmOutputText.innerText = ''; // Clear LLM output (Ensure llmOutputText is defined)
+        llmOutputContainer.classList.add('hidden'); // Hide LLM output container (Ensure llmOutputContainer is defined)
+        generatedBeaconsDiv.classList.add('hidden'); // Hide generated beacons section
 
     } catch (error) {
         console.error("Error submitting beacon application:", error);
         showNotification(`Error submitting application: ${error.message}`, 'error');
     } finally {
-        loadingOverlay.classList.add('hidden');
+        // This runs regardless of success or failure in the try block
+        loadingOverlay.classList.add('hidden'); // Always hide loading overlay
     }
-});
-
+}); // <--- THIS IS THE FINAL CLOSING BRACE FOR THE beaconForm.addEventListener
                 // Update surveyor usage quota
                 const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
                 const surveyorDocRef = doc(db, "surveyors", surveyorPrefix);
