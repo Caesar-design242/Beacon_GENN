@@ -299,7 +299,7 @@ medium green */
         getDoc,
         setDoc,
         updateDoc,
-        addDoc
+        addDoc,
 	query, // New import
         where, // New import
         getDocs // New import
@@ -1305,11 +1305,10 @@ coordinatesListDiv.children.length).toString();
             const recceFile = recceDiagramInput.files[0];
 
             if (!surveyorPrefix || !beaconCount || !latitude || !longitude || !lga || !recceFile) {
-                showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
-                loadingOverlay.classList.add('hidden');
-                return;
-            }
-
+    showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
+    loadingOverlay.classList.add('hidden');
+    return; // This 'return' is causing the error
+}
              // --- Generate PROPOSED beacon numbers and coordinates ---
     // IMPORTANT: The actual 'lastBeaconSerialNum' used here should be based on a sequence counter
     // managed at the *application submission* level, not the *issued* level.
