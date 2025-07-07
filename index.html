@@ -724,8 +724,8 @@ md hover:bg-blue-700 transition-colors duration-200">
         <p> Courtesy Development by <strong>Caesar Oviawe</strong> in collaboration with <strong>Surv.
 Kceey Ehibor</strong>, <span id="footerYear">2025</span>.<br /> Contact info obtained from <a href="https://www.nisedostate.org" class="text-blue-600 underline hover:text-blue-800" target="_blank">NIS Edo State Website</a> </p>
     </footer>
-
-<script type="module">
+    <script>
+     <script type="module">
     // ALL import statements MUST be here, at the very top level of the module
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
@@ -888,35 +888,7 @@ function updateUIVisibilityByRole(role) {
         const analytics = getAnalytics(app); // analytics can remain const here if only used locally
         const db = getFirestore(app); // <--- Assign to the outer 'db'
 
-        // Fetch the test document
-        const docRef = doc(db, "testCollection", "testDoc");
-       async function myFunction() {
-  const docSnap = await getDoc(docRef); // ✅ This works
-}
-
-        if (docSnap.exists()) {
-            console.log("✅ Document data:", docSnap.data());
-            if (systemStatusText) {
-                systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
-            }
-        } else {
-            console.log("❌ No such document!");
-            if (systemStatusText) {
-                systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
-            }
-        }
-
-    } catch (error) {
-        console.error("Error during Firebase initialization or data fetch:", error);
-        if (systemStatusText) {
-            systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
-        }
-    } finally {
-        // This hides the loading overlay
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-        }
-    }
+       
         // Update year displays
         document.getElementById("footerYear").innerText = currentYear;
         document.getElementById("yearText").innerText = currentYear;
