@@ -300,9 +300,76 @@ medium green */
         setDoc,
         updateDoc,
         addDoc
+	query, // New import
+        where, // New import
+        getDocs // New import
     } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+  import {
+        getAuth, // New import
+        onAuthStateChanged, // New import
+        signInWithEmailAndPassword, // New import
+        signOut // New import
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    // ... rest of your existing imports
+</script>
+ 
+// Global Firebase Auth instance
+let auth;  
+ document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize Firebase and Firestore
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            const db = getFirestore(app);
+   auth = getAuth(app); // Initialize Auth
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userId = user.uid;
+            // Fetch user's role (e.g., from a 'users' collection in Firestore)
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const userRole = userData.role; // e.g., 'surveyor', 'admin', 'confirmer'
+                document.getElementById('currentUser').innerText = userData.name || user.email;
+
+                // Redirect based on role or show appropriate UI
+                if (userRole === 'confirmer' && window.location.pathname !== '/confirmation_portal.html') {
+                    window.location.href = 'confirmation_portal.html';
+                } else if (userRole === 'surveyor' && window.location.pathname !== '/index.html') {
+                    // Assuming index.html is the surveyor portal
+                    // window.location.href = 'index.html';
+                }
+                // Also update UI visibility based on role (e.g., hide admin panels from surveyors)
+                updateUIVisibilityByRole(userRole);
+
+            } else {
+                console.warn("User document not found for:", userId);
+                // Handle new user or user without a role
+            }
+        } else {
+            // User is signed out. Redirect to login page or show login UI.
+            // window.location.href = 'login.html'; // Example
+            document.getElementById('currentUser').innerText = 'Guest';
+        }
+    });
+
+    // ... rest of your DOMContentLoaded logic
+});
+
+function updateUIVisibilityByRole(role) {
+    // Example: Hide surveyor management from regular surveyors
+    const surveyorManagementDiv = document.querySelector('.mt-8.bg-white.rounded-lg.card-shadow.p-6.fade-in > h2.flex.items-center');
+    if (surveyorManagementDiv) {
+        if (role !== 'admin' && role !== 'confirmer') { // Only 'admin' and 'confirmer' can see this
+            surveyorManagementDiv.parentElement.style.display = 'none';
+        } else {
+            surveyorManagementDiv.parentElement.style.display = 'block';
+        }
+    }
+    // You'd add more such logic for other UI elements that should be role-specific
+}
+
+
         const loadingOverlay = document.getElementById('loadingOverlay');
         const systemStatusText = document.getElementById('systemStatusText');
 
@@ -318,10 +385,6 @@ medium green */
                 measurementId: "G-ZG50RM7P47"
             };
 
-            // Initialize Firebase and Firestore
-            const app = initializeApp(firebaseConfig);
-            const analytics = getAnalytics(app);
-            const db = getFirestore(app);
 
             // Fetch the test document
             const docRef = doc(db, "testCollection", "testDoc");
@@ -1226,6 +1289,7 @@ coordinatesListDiv.children.length).toString();
         // Function to handle beacon form submission
         beaconForm.addEventListener('submit', async (e) => { // <-- ENSURE 'async' IS HERE
             e.preventDefault();
+	    loadingOverlay.classList.remove('hidden'); // Show loading
             // ... rest of your code ...
             await new Promise(resolve => setTimeout(resolve, 1500)); // This is the problematic await
             // ...
@@ -1246,7 +1310,42 @@ coordinatesListDiv.children.length).toString();
                 return;
             }
 
-            if (!recceFile) {
+             // --- Generate PROPOSED beacon numbers and coordinates ---
+    // IMPORTANT: The actual 'lastBeaconSerialNum' used here should be based on a sequence counter
+    // managed at the *application submission* level, not the *issued* level.
+    // For simplicity here, we'll continue using the existing lastBeaconSerialNum, but
+    // in a real system, you'd need a separate sequence for "application IDs" or "pending beacon numbers".
+    // For this example, let's assume `lastBeaconSerialNum` is what we propose.
+    // We'll increment it just for the proposal, but it won't affect the *global issued* `lastBeaconSerialNum` yet.
+    const { beacons: proposedBeacons, coordinates: proposedCoordinates } = generateBeacons(
+        beaconCount, surveyorPrefix, latitude, longitude, parcelArea, lga
+    );
+
+    // Upload RECCE file to Firebase Storage
+    let recceFileUrl = '';
+    let recceFileName = recceFile.name;
+    try {
+        // You'll need to add Firebase Storage SDK and logic here
+        // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+        // const storage = getStorage(app);
+        // const storageRef = ref(storage, `recce_diagrams/${surveyorPrefix}/${recceFile.name}_${Date.now()}`);
+        // await uploadBytes(storageRef, recceFile);
+        // recceFileUrl = await getDownloadURL(storageRef);
+        // showNotification('RECCE Diagram uploaded successfully!', 'success');
+        
+        // For now, simulate upload
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        recceFileUrl = `simulated-url/recce_diagrams/${recceFileName}`;
+
+    } catch (error) {
+        console.error("Error uploading RECCE file:", error);
+        showNotification(`Error uploading RECCE diagram: ${error.message}`, 'error');
+        loadingOverlay.classList.add('hidden');
+        return;
+    }
+
+
+if (!recceFile) {
                 showNotification('RECCE Diagram is required for GIS integration.', 'error');
                 loadingOverlay.classList.add('hidden');
                 return;
@@ -1264,20 +1363,44 @@ coordinatesListDiv.children.length).toString();
 
             // Save to Firestore (simplified - actual implementation needs proper data structure)
             try {
-                await addDoc(collection(db, "generatedBeacons"), {
+                await addDoc(collection(db, "beaconApplications"), {
                     surveyorPrefix,
+            	surveyorName: surveyors[surveyorPrefix], // Assuming surveyors object is loaded
                     beaconCount,
                     latitude,
                     longitude,
                     parcelArea,
                     lga,
                     description,
-                    generatedBeacons: beacons,
-                    coordinates: coordinates,
-                    timestamp: new Date(),
-                    uniqueId: uniqueId,
-                    recceFileName: recceFile ? recceFile.name : 'N/A'
-                });
+                    recceFileName,
+            recceFileUrl,
+            generatedBeacons: proposedBeacons, // Store the proposed beacons
+            generatedCoordinates: proposedCoordinates,
+            status: "Pending Approval", // Set initial status
+            appliedAt: new Date(),
+            applicantUid: userId // Store the UID of the surveyor
+        });
+
+        showNotification('Beacon application submitted for approval!', 'success', 5000);
+        addActivity(`Surveyor ${surveyorPrefix} submitted an application for ${beaconCount} beacons.`);
+
+        // Clear form
+        beaconForm.reset();
+        recceDiagramInput.value = '';
+        uploadedFilesDiv.innerHTML = '';
+        llmOutputText.innerText = '';
+        llmOutputContainer.classList.add('hidden');
+
+        // Hide generated beacons section (as they are not officially issued yet)
+        generatedBeaconsDiv.classList.add('hidden');
+
+    } catch (error) {
+        console.error("Error submitting beacon application:", error);
+        showNotification(`Error submitting application: ${error.message}`, 'error');
+    } finally {
+        loadingOverlay.classList.add('hidden');
+    }
+});
 
                 // Update surveyor usage quota
                 const currentQuarterKey = `${currentYear}-Q${currentQuarter}`;
@@ -1401,6 +1524,32 @@ coordinatesListDiv.children.length).toString();
             showNotification('RECCE Diagram removed.', 'info');
         }
 
+async function updateStats() {
+    // Query 'issuedBeacons' for total count
+    const issuedBeaconsSnapshot = await getDocs(collection(db, "issuedBeacons"));
+    totalBeaconsStat.innerText = issuedBeaconsSnapshot.size;
+
+    // You might need a way to count unique parcels from 'issuedBeacons'
+    // This could involve grouping by a 'parcelId' if you add one to the issuedBeacons documents.
+    // For now, let's assume each application is one parcel
+    const issuedApplicationsSnapshot = await getDocs(query(collection(db, "beaconApplications"), where("status", "==", "Approved")));
+    parcelsCountStat.innerText = issuedApplicationsSnapshot.size;
+
+    let totalGisPoints = 0;
+    issuedApplicationsSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.generatedCoordinates) {
+            totalGisPoints += data.generatedCoordinates.length;
+        }
+    });
+    gisPointsStat.innerText = totalGisPoints;
+
+    // Active Surveyors remains the same, based on your 'surveyors' collection
+    activeSurveyorsStat.innerText = Object.keys(surveyors).length;
+}
+
+// Call updateStats() on initial load and after a successful approval in the confirmation portal
+// or periodically if needed.
         // Gemini API Integration (Placeholder)
         async function callGeminiAPI(prompt) {
             llmOutputText.innerText = '';
