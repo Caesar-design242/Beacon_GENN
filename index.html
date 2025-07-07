@@ -1287,28 +1287,36 @@ coordinatesListDiv.children.length).toString();
         }
 
         // Function to handle beacon form submission
-        beaconForm.addEventListener('submit', async (e) => { // <-- ENSURE 'async' IS HERE
-            e.preventDefault();
-	    loadingOverlay.classList.remove('hidden'); // Show loading
-            // ... rest of your code ...
-            await new Promise(resolve => setTimeout(resolve, 1500)); // This is the problematic await
-            // ...
-        });
+beaconForm.addEventListener('submit', async (e) => { // <-- ENSURE 'async' IS HERE
+    e.preventDefault(); // Prevents the default form submission behavior
+    loadingOverlay.classList.remove('hidden'); // Show loading overlay
 
-            const surveyorPrefix = surveyorSelect.value;
-            const beaconCount = parseInt(beaconCountInput.value);
-            const latitude = latitudeInput.value;
-            const longitude = longitudeInput.value;
-            const parcelArea = parcelAreaInput.value;
-            const lga = lgaSelect.value;
-            const description = descriptionTextarea.value;
-            const recceFile = recceDiagramInput.files[0];
+    // All form handling logic, including variable declarations and validation,
+    // MUST be inside this event listener's callback function.
 
-            if (!surveyorPrefix || !beaconCount || !latitude || !longitude || !lga || !recceFile) {
-    showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
-    loadingOverlay.classList.add('hidden');
-    return; // This 'return' is causing the error
-}
+    const surveyorPrefix = surveyorSelect.value;
+    const beaconCount = parseInt(beaconCountInput.value);
+    const latitude = latitudeInput.value;
+    const longitude = longitudeInput.value;
+    const parcelArea = parcelAreaInput.value; // Make sure parcelAreaInput is defined
+    const lga = lgaSelect.value;
+    const description = descriptionTextarea.value; // Make sure descriptionTextarea is defined
+    const recceFile = recceDiagramInput.files[0]; // Make sure recceDiagramInput is defined
+
+    // Validation check
+    if (!surveyorPrefix || !beaconCount || !latitude || !longitude || !lga || !recceFile) {
+        showNotification('Please fill all required fields, including RECCE Diagram.', 'error');
+        loadingOverlay.classList.add('hidden'); // Hide loading overlay if validation fails
+        return; // This 'return' is now valid because it's inside the function
+    }
+
+    // If validation passes, proceed with the rest of your form submission logic
+    // For example, your problematic await and subsequent code:
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Now this await is correctly placed inside an async function
+
+    // ... rest of your code to process the form data (e.g., send to server, generate numbers) ...
+});
+
              // --- Generate PROPOSED beacon numbers and coordinates ---
     // IMPORTANT: The actual 'lastBeaconSerialNum' used here should be based on a sequence counter
     // managed at the *application submission* level, not the *issued* level.
