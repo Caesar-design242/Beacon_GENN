@@ -1449,9 +1449,7 @@ beaconForm.addEventListener('submit', async (e) => { // <--- THIS IS THE START O
 }); // <--- THIS IS THE FINAL CLOSING BRACE FOR THE beaconForm.addEventListener
 
 
-                // Also update the global lastBeaconSerialNum in a separate document or a specific field in the system config.
-                await setDoc(doc(db, "systemConfig", "beaconing"), { lastBeaconSerialNum: lastBeaconSerialNum }, { merge: true });
-
+                
                 showNotification('Beacon data saved to cloud!', 'success');
                 // Clear form or reset
                 beaconForm.reset();
