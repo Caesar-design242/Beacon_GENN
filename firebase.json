@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "build",  <-- **THIS IS CRUCIAL FOR REACT APPS**
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
