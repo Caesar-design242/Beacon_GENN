@@ -701,16 +701,16 @@
         // You might need getStorage for RECCE diagrams later
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY", // <<< REPLACE WITH YOUR ACTUAL API KEY
-            authDomain: "beacon-35989.firebaseapp.com",
-            projectId: "beacon-35989",
-            storageBucket: "beacon-35989.appspot.com",
-            messagingSenderId: "130634267193",
-            appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-            measurementId: "G-ZG50RM7P47"
-        };
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA",
+  authDomain: "beacon-35989.firebaseapp.com",
+  projectId: "beacon-35989",
+  storageBucket: "beacon-35989.firebasestorage.app",
+  messagingSenderId: "130634267193",
+  appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+  measurementId: "G-ZG50RM7P47"
+};
 
         // --- Initialize Firebase App and Services ---
         const app = initializeApp(firebaseConfig);
@@ -1291,21 +1291,20 @@
                 if (currentUserData.role === 'admin') {
                     // If the user is an admin, show the admin panel
                     adminPanel.classList.remove('hidden');
-                    loginOverlay.classList.add('hidden');
-                    mainContentWrapper.classList.remove('hidden');
-                    initApplication(); // Initialize main app content
+                    // No redirection to confirmation.html for now, keep on main page
+                    // window.location.href = ADMIN_PAGE_URL;
                 } else {
                     // Regular surveyor, hide admin panel
                     adminPanel.classList.add('hidden');
-                    loginOverlay.classList.add('hidden');
-                    mainContentWrapper.classList.remove('hidden');
-                    initApplication(); // Initialize main app content
                 }
+                loginOverlay.classList.add('hidden');
+                mainContentWrapper.classList.remove('hidden');
+                initApplication(); // Initialize main app content
             } else {
                 // User exists in Auth but not in surveyors collection
                 // This scenario could happen if they sign in with Google for the first time
                 // or if their Firestore profile was deleted.
-                console.log("User profile not found in Firestore. Creating new surveyor profile.");
+                console.log("User profile not found in Firestore. Creating new surveyor profile for Google user.");
                 try {
                     const newPrefix = await generateSurveyorPrefix(); // Generate a unique prefix
                     const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
@@ -1405,8 +1404,6 @@
 
                         if (currentUserData.role === 'admin') {
                             adminPanel.classList.remove('hidden'); // Show admin panel
-                            // No redirection to confirmation.html for now, keep on main page
-                            // window.location.href = ADMIN_PAGE_URL;
                         } else {
                             adminPanel.classList.add('hidden'); // Hide admin panel
                         }
@@ -1417,11 +1414,33 @@
                         // This case should ideally be handled by processLoginSuccess for new Google users.
                         // If an email/password user somehow logs in but has no Firestore profile,
                         // or if a Google user's profile was deleted, log them out.
-                        console.warn("User authenticated but no Firestore profile found. Logging out.");
-                        await signOut(auth); // Log out invalid user
-                        showNotification('User profile not found in database. Please log in again or contact support.', 'error');
-                        loginOverlay.classList.remove('hidden');
-                        mainContentWrapper.classList.add('hidden');
+                        console.warn("User authenticated but no Firestore profile found. Attempting to create basic surveyor profile.");
+                        // Attempt to create a basic profile for authenticated users without one
+                        try {
+                            const newPrefix = await generateSurveyorPrefix();
+                            const surveyorName = user.displayName || user.email.split('@')[0];
+                            await setDoc(doc(db, "surveyors", user.uid), {
+                                email: user.email,
+                                prefix: newPrefix,
+                                name: surveyorName,
+                                quota: beaconLimitPerSurveyor,
+                                lastQuotaReset: new Date().toISOString(),
+                                role: 'surveyor' // Default to surveyor if no profile found
+                            });
+                            currentUserData = (await getDoc(doc(db, "surveyors", user.uid))).data();
+                            showNotification(`Welcome, ${surveyorName}! Your surveyor profile has been created.`, 'success');
+                            adminPanel.classList.add('hidden'); // Hide admin panel for new default surveyor
+                            loginOverlay.classList.add('hidden');
+                            mainContentWrapper.classList.remove('hidden');
+                            initApplication();
+                            currentUserNameSpan.textContent = currentUserData.name || user.email;
+                        } catch (profileCreationError) {
+                            console.error("Error creating default surveyor profile:", profileCreationError);
+                            await signOut(auth); // Log them out if profile creation fails
+                            showNotification(`Failed to create default profile: ${profileCreationError.message}. Please try again.`, 'error');
+                            loginOverlay.classList.remove('hidden');
+                            mainContentWrapper.classList.add('hidden');
+                        }
                     }
                 } catch (error) {
                     console.error("Error checking user profile on auth state change:", error);
