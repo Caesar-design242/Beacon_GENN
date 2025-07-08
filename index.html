@@ -271,40 +271,6 @@
             max-height: 200px; /* Adjust based on content height */
             transition: max-height 0.5s ease-in;
         }
-        /* Styles for surveyor list */
-        .surveyor-list-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
-        .surveyor-list-table th, .surveyor-list-table td {
-            border: 1px solid #e2e8f0; /* Gray-200 */
-            padding: 0.75rem;
-            text-align: left;
-        }
-        .surveyor-list-table th {
-            background-color: #f8fafc; /* Gray-50 */
-            font-weight: 600;
-            color: #4a5568; /* Gray-700 */
-        }
-        .surveyor-list-table tr:nth-child(even) {
-            background-color: #f8fafc; /* Gray-50 */
-        }
-        .surveyor-list-table tr:hover {
-            background-color: #edf2f7; /* Gray-100 */
-        }
-        .remove-btn {
-            background-color: #ef4444; /* Red-500 */
-            color: white;
-            padding: 0.3rem 0.6rem;
-            border-radius: 0.25rem;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .remove-btn:hover {
-            background-color: #dc2626; /* Red-600 */
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -617,60 +583,32 @@
                     </div>
                 </div>
             </div>
-            <div id="adminPanel" class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in hidden">
+            <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
                 <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management (Admin Panel)
+                    <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management
                 </h2>
-                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor/Admin</h4>
+                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor (Admin Panel)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="adminNewSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
-                        <input type="email" id="adminNewSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label for="newSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
+                        <input type="email" id="newSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
-                        <input type="password" id="adminNewSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label for="newSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
+                        <input type="password" id="newSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
-                        <input type="text" id="adminNewPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" maxlength="2" style="text-transform: uppercase;">
+                        <label for="newPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
+                        <input type="text" id="newPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
-                        <input type="text" id="adminNewName" placeholder="Enter full name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                    </div>
-                    <div class="col-span-1 md:col-span-2">
-                        <label for="newSurveyorRole" class="block text-sm font-medium text-gray-700">Role:</label>
-                        <select id="newSurveyorRole" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                            <option value="surveyor">Surveyor</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <label for="newName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
+                        <input type="text" id="newName" placeholder="Enter full name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                 </div>
                 <button type="button" id="addSurveyorBtn" class="bg-green-600 text-white px-4 py-3 rounded md hover:bg-green-700 transition-colors duration-200">
-                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor/Admin
+                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor
                 </button>
-
-                <div class="mt-8 pt-4 border-t border-gray-200">
-                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Existing Surveyors & Admins</h4>
-                    <div class="overflow-x-auto">
-                        <table class="surveyor-list-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Prefix</th>
-                                    <th>Role</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="surveyorsListBody">
-                                <!-- Surveyors will be loaded here by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <div class="mt-8 pt-4 border-t border-gray-200">
                     <h4 class="text-lg font-semibold mb-3 text-blue-800">Bulk Add Surveyors (CSV)</h4>
                     <p class="text-sm text-gray-600 mb-4">Upload a CSV file with columns: `Email,Password,Prefix,Name`. Each row will be a new surveyor account and profile.</p>
@@ -696,21 +634,21 @@
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
-        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"; // Added deleteDoc
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, deleteUser } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"; // Added deleteUser
+        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         // You might need getStorage for RECCE diagrams later
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA",
-  authDomain: "beacon-35989.firebaseapp.com",
-  projectId: "beacon-35989",
-  storageBucket: "beacon-35989.firebasestorage.app",
-  messagingSenderId: "130634267193",
-  appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-  measurementId: "G-ZG50RM7P47"
-};
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // <<< REPLACE WITH YOUR ACTUAL API KEY
+            authDomain: "beacon-35989.firebaseapp.com",
+            projectId: "beacon-35989",
+            storageBucket: "beacon-35989.appspot.com",
+            messagingSenderId: "130634267193",
+            appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+            measurementId: "G-ZG50RM7P47"
+        };
 
         // --- Initialize Firebase App and Services ---
         const app = initializeApp(firebaseConfig);
@@ -777,15 +715,13 @@ const firebaseConfig = {
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
 
-        // Admin panel surveyor registration elements (now with specific IDs)
-        const adminPanel = document.getElementById('adminPanel'); // New: Reference to the admin panel container
-        const adminNewSurveyorEmailInput = document.getElementById('adminNewSurveyorEmail');
-        const adminNewSurveyorPasswordInput = document.getElementById('adminNewSurveyorPassword');
-        const adminNewPrefixInput = document.getElementById('adminNewPrefix');
-        const adminNewNameInput = document.getElementById('adminNewName');
-        const newSurveyorRoleSelect = document.getElementById('newSurveyorRole'); // New: Role select for admin panel
-        const addSurveyorBtn = document.getElementById('addSurveyorBtn');
-        const surveyorsListBody = document.getElementById('surveyorsListBody'); // New: tbody for the surveyor table
+        // Note: The 'Add New Surveyor' section in the main content is for admin-like bulk/manual addition.
+        // The login overlay now handles user-facing registration.
+        // const newSurveyorEmailInput = document.getElementById('newSurveyorEmail'); // No longer used for user-facing registration
+        // const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword'); // No longer used
+        // const newPrefixInput = document.getElementById('newPrefix'); // No longer used
+        // const newNameInput = document.getElementById('newName'); // No longer used
+        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Still used for admin panel
 
         const csvUploadArea = document.getElementById('csvUploadArea');
         const csvFileInput = document.getElementById('csvFileInput');
@@ -795,7 +731,7 @@ const firebaseConfig = {
 
         // --- Global Application State Variables ---
         let lastBeaconSerialNum = 'AA0000AZ'; // Example initial value
-        let surveyors = []; // Stores all surveyor data from Firestore
+        let surveyors = [];
         let currentUserData = null; // Will store current logged-in user's Firestore data
         const beaconLimitPerSurveyor = 200; // Per quarter
         const currentYear = new Date().getFullYear();
@@ -950,40 +886,16 @@ const firebaseConfig = {
         async function loadSurveyors() {
             try {
                 surveyorSelect.innerHTML = '<option value="">Select Surveyor</option>'; // Clear existing options
-                surveyorsListBody.innerHTML = ''; // Clear existing table rows
                 surveyors = []; // Clear global surveyors array
-
                 const querySnapshot = await getDocs(collection(db, "surveyors"));
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const surveyor = { id: doc.id, ...data };
-                    surveyors.push(surveyor);
-
-                    // Populate dropdown
+                    surveyors.push({ id: doc.id, ...data });
                     const option = document.createElement('option');
                     option.value = doc.id;
                     option.textContent = `${data.prefix} - ${data.name}`;
                     surveyorSelect.appendChild(option);
-
-                    // Populate admin table
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${surveyor.name}</td>
-                        <td>${surveyor.email}</td>
-                        <td>${surveyor.prefix}</td>
-                        <td>${surveyor.role || 'surveyor'}</td>
-                        <td>
-                            <button class="remove-btn" data-uid="${surveyor.id}">Remove</button>
-                        </td>
-                    `;
-                    surveyorsListBody.appendChild(row);
                 });
-
-                // Add event listeners to remove buttons
-                document.querySelectorAll('.remove-btn').forEach(button => {
-                    button.onclick = (event) => handleDeleteSurveyor(event.target.dataset.uid);
-                });
-
                 // If a user is logged in, select their surveyor profile
                 if (auth.currentUser && currentUserData) {
                     surveyorSelect.value = auth.currentUser.uid;
@@ -1004,9 +916,10 @@ const firebaseConfig = {
             }
         }
 
-        // Modified addSurveyor to accept a role parameter
-        async function addSurveyor(email, password, prefix, name, role = 'surveyor', uid = null) {
-            setLoading(true); // Use setLoading function
+        // This function is now used by both the login overlay's register button
+        // and the admin panel's "Add New Surveyor" button.
+        async function addSurveyor(email, password, prefix, name, uid = null) {
+            loadingOverlay.style.display = 'flex';
             try {
                 // 1. Check if a surveyor with the given prefix already exists
                 const qPrefix = query(collection(db, "surveyors"), where("prefix", "==", prefix));
@@ -1031,12 +944,12 @@ const firebaseConfig = {
                     name: name,
                     quota: beaconLimitPerSurveyor, // Initial quota
                     lastQuotaReset: new Date().toISOString(), // Track last reset
-                    role: role // Assign the specified role
+                    role: 'surveyor' // Assign default role
                 });
 
-                showNotification(`Surveyor registered successfully as ${role}!`, 'success');
-                await loadSurveyors(); // Reload surveyors into dropdown and table
-                addActivity(`Registered new ${role}: ${name} (${prefix}).`);
+                showNotification('Surveyor registered successfully!', 'success');
+                await loadSurveyors(); // Reload surveyors into dropdown
+                addActivity(`Registered new surveyor: ${name} (${prefix}).`);
                 return true;
             } catch (error) {
                 console.error("Error adding surveyor:", error);
@@ -1051,63 +964,9 @@ const firebaseConfig = {
                 showNotification(`Error registering surveyor: ${errorMessage}`, 'error');
                 return false;
             } finally {
-                setLoading(false); // Use setLoading function
+                loadingOverlay.style.display = 'none';
             }
         }
-
-        // New function to handle surveyor deletion
-        async function handleDeleteSurveyor(uidToDelete) {
-            // Basic confirmation
-            const confirmDelete = confirm(`Are you sure you want to delete this surveyor? This action is irreversible.`);
-            if (!confirmDelete) {
-                return;
-            }
-
-            setLoading(true);
-            try {
-                // 1. Delete Firestore document
-                await deleteDoc(doc(db, "surveyors", uidToDelete));
-                showNotification('Surveyor profile deleted from Firestore.', 'info');
-                addActivity(`Deleted surveyor profile with UID: ${uidToDelete}.`);
-
-                // 2. Attempt to delete user from Firebase Authentication
-                // IMPORTANT: Deleting a user from Firebase Auth client-side is restricted
-                // unless it's the currently logged-in user deleting themselves.
-                // To delete other users (as an admin), you typically need a Firebase Cloud Function
-                // or a backend server using the Firebase Admin SDK.
-                // The following client-side call will likely fail with a permission error
-                // if the current user is not the one being deleted.
-                // For a full admin panel, you'd trigger a Cloud Function here.
-
-                // This part will only work if the currently logged-in user is the one being deleted,
-                // or if you've configured custom claims/rules that grant this specific client-side action.
-                // For a robust admin panel, consider a Cloud Function to handle this securely.
-                try {
-                    const userToDelete = auth.currentUser; // This is the currently logged in user
-                    if (userToDelete && userToDelete.uid === uidToDelete) {
-                        await deleteUser(userToDelete); // User deleting themselves
-                        showNotification('Your account has been deleted.', 'success');
-                        // No need to redirect, onAuthStateChanged will handle logout
-                    } else {
-                        // If an admin is trying to delete another user, this client-side call will fail.
-                        // You would typically call a Cloud Function here.
-                        console.warn("Client-side Firebase Auth user deletion is restricted for other users. Consider a Cloud Function for admin deletions.");
-                        showNotification('Surveyor deleted from Firestore. For full account deletion, an admin backend action might be required.', 'warning');
-                    }
-                } catch (authDeleteError) {
-                    console.error("Error deleting user from Firebase Auth:", authDeleteError);
-                    showNotification(`Error deleting user from Auth: ${authDeleteError.message}. Profile removed from Firestore.`, 'error');
-                }
-
-                await loadSurveyors(); // Reload the list after deletion
-            } catch (error) {
-                console.error("Error deleting surveyor:", error);
-                showNotification(`Error deleting surveyor: ${error.message}`, 'error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
 
         function calculateChecksum(text) {
             let sum = 0;
@@ -1207,17 +1066,24 @@ const firebaseConfig = {
                 return;
             }
 
-            // Call addSurveyor with default 'surveyor' role
-            const success = await addSurveyor(email, password, prefix, name, 'surveyor');
-            if (success) {
-                // After successful registration, automatically logs in via onAuthStateChanged
-                // and switches to dashboard. No need to explicitly call handleLogin here.
-                showNotification('Registration successful! You are now logged in.', 'success');
-                // Clear fields after successful registration
-                loginEmailInput.value = '';
-                loginPasswordInput.value = '';
-                newSurveyorNameInput.value = '';
-                newSurveyorPrefixInput.value = '';
+            setLoading(true);
+            try {
+                // Use the existing addSurveyor function, but without UID as it's new registration
+                const success = await addSurveyor(email, password, prefix, name);
+                if (success) {
+                    // After successful registration, automatically logs in via onAuthStateChanged
+                    // and switches to dashboard. No need to explicitly call handleLogin here.
+                    showNotification('Registration successful! You are now logged in.', 'success');
+                    // Clear fields after successful registration
+                    loginEmailInput.value = '';
+                    loginPasswordInput.value = '';
+                    newSurveyorNameInput.value = '';
+                    newSurveyorPrefixInput.value = '';
+                }
+            } catch (error) {
+                // Error handled by addSurveyor function's showNotification
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -1289,14 +1155,8 @@ const firebaseConfig = {
                 showNotification(`Logged in as ${currentUserData.name || user.email}!`, 'success');
 
                 if (currentUserData.role === 'admin') {
-                    // If the user is an admin, show the admin panel
-                    adminPanel.classList.remove('hidden');
-                    loginOverlay.classList.add('hidden');
-                    mainContentWrapper.classList.remove('hidden');
-                    initApplication(); // Initialize main app content
+                    window.location.href = ADMIN_PAGE_URL; // Redirect to admin page
                 } else {
-                    // Regular surveyor, hide admin panel
-                    adminPanel.classList.add('hidden');
                     loginOverlay.classList.add('hidden');
                     mainContentWrapper.classList.remove('hidden');
                     initApplication(); // Initialize main app content
@@ -1310,7 +1170,6 @@ const firebaseConfig = {
                     const newPrefix = await generateSurveyorPrefix(); // Generate a unique prefix
                     const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
 
-                    // For Google Sign-in, default to 'surveyor' role if no existing profile
                     await setDoc(userDocRef, {
                         email: user.email,
                         prefix: newPrefix,
@@ -1324,8 +1183,7 @@ const firebaseConfig = {
                     showNotification(`Welcome, new surveyor ${surveyorName}! Your profile has been created.`, 'success');
                     addActivity(`New surveyor registered via Google: ${surveyorName} (${newPrefix}).`);
 
-                    // Proceed to main app (admin panel hidden by default for new surveyors)
-                    adminPanel.classList.add('hidden');
+                    // Proceed to main app
                     loginOverlay.classList.add('hidden');
                     mainContentWrapper.classList.remove('hidden');
                     initApplication();
@@ -1401,18 +1259,14 @@ const firebaseConfig = {
                     const userDoc = await getDoc(doc(db, "surveyors", user.uid));
                     if (userDoc.exists()) {
                         currentUserData = userDoc.data();
-                        currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
-
                         if (currentUserData.role === 'admin') {
-                            adminPanel.classList.remove('hidden'); // Show admin panel
-                            // No redirection to confirmation.html for now, keep on main page
-                            // window.location.href = ADMIN_PAGE_URL;
+                            window.location.href = ADMIN_PAGE_URL; // Always redirect admin
                         } else {
-                            adminPanel.classList.add('hidden'); // Hide admin panel
+                            loginOverlay.classList.add('hidden');
+                            mainContentWrapper.classList.remove('hidden');
+                            initApplication(); // Initialize main app for non-admin users
+                            currentUserNameSpan.textContent = currentUserData.name || user.email;
                         }
-                        loginOverlay.classList.add('hidden');
-                        mainContentWrapper.classList.remove('hidden');
-                        initApplication(); // Initialize main app content
                     } else {
                         // This case should ideally be handled by processLoginSuccess for new Google users.
                         // If an email/password user somehow logs in but has no Firestore profile,
@@ -1460,7 +1314,7 @@ const firebaseConfig = {
 
             await testFirestoreConnection(); // Re-run connection test when app initializes
 
-            await loadSurveyors(); // Load initial data for surveyors dropdown and admin table
+            await loadSurveyors(); // Load initial data for surveyors dropdown
 
             addActivity("System Initialized for 2025");
 
@@ -1627,13 +1481,12 @@ const firebaseConfig = {
                 }
             });
 
-            // This is the ADMIN panel's "Add New Surveyor" button, now allowing role selection
+            // This is the ADMIN panel's "Add New Surveyor" button, still separate from user registration
             addSurveyorBtn.addEventListener('click', async () => {
-                const email = adminNewSurveyorEmailInput.value.trim();
-                const password = adminNewSurveyorPasswordInput.value.trim();
-                const prefix = adminNewPrefixInput.value.trim().toUpperCase();
-                const name = adminNewNameInput.value.trim();
-                const role = newSurveyorRoleSelect.value; // Get selected role
+                const email = document.getElementById('newSurveyorEmail').value.trim();
+                const password = document.getElementById('newSurveyorPassword').value.trim();
+                const prefix = document.getElementById('newPrefix').value.trim().toUpperCase();
+                const name = document.getElementById('newName').value.trim();
 
                 if (!email || !password || !prefix || !name) {
                     showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration in admin panel.', 'error');
@@ -1648,14 +1501,12 @@ const firebaseConfig = {
                     return;
                 }
 
-                // Call addSurveyor with the selected role
-                const success = await addSurveyor(email, password, prefix, name, role);
+                const success = await addSurveyor(email, password, prefix, name);
                 if (success) {
-                    adminNewSurveyorEmailInput.value = '';
-                    adminNewSurveyorPasswordInput.value = '';
-                    adminNewPrefixInput.value = '';
-                    adminNewNameInput.value = '';
-                    newSurveyorRoleSelect.value = 'surveyor'; // Reset role dropdown
+                    document.getElementById('newSurveyorEmail').value = '';
+                    document.getElementById('newSurveyorPassword').value = '';
+                    document.getElementById('newPrefix').value = '';
+                    document.getElementById('newName').value = '';
                 }
             });
 
@@ -1769,7 +1620,7 @@ const firebaseConfig = {
                                 errors.push(`Row ${i + 1} (${email}): Surveyor with prefix '${prefix}' already exists. Skipping.`);
                                 continue;
                             }
-                            surveyorsToProcess.push({ email, password, prefix, name, role: 'surveyor' }); // CSV always registers as surveyor
+                            surveyorsToProcess.push({ email, password, prefix, name });
                             existingPrefixes.add(prefix); // Add to set to prevent duplicates within the CSV as well
                         } else {
                             errors.push(`Row ${i + 1}: Missing required data.`);
@@ -1791,7 +1642,7 @@ const firebaseConfig = {
                                     name: surveyorData.name,
                                     quota: beaconLimitPerSurveyor,
                                     lastQuotaReset: new Date().toISOString(),
-                                    role: surveyorData.role // Use role from CSV data (which is 'surveyor')
+                                    role: 'surveyor'
                                 });
                                 successCount++;
                             } catch (error) {
