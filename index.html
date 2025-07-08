@@ -687,7 +687,7 @@
         const displayParcelAreaSpan = document.getElementById('displayParcelArea');
         const searchBeaconInput = document.getElementById('searchBeacon');
         const validateBtn = document.getElementById('validateBtn');
-        const validationResultsDiv = document = document.getElementById('validationResults');
+        const validationResultsDiv = document.getElementById('validationResults'); // Corrected line
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
 
@@ -904,7 +904,7 @@
                 }
 
                 let user;
-                if (uid) { // If UID is provided (e.g., from Google Sign-In)
+                if (uid) { // If UID is provided (e.g., from Google Sign-in)
                     user = auth.currentUser; // Use the currently authenticated user
                 } else { // For email/password registration
                     // 2. Create user in Firebase Authentication
