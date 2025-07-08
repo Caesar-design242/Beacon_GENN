@@ -230,6 +230,29 @@
         .login-button:hover {
             background-color: #1d4ed8; /* Blue-800 */
         }
+        .google-sign-in-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #3c4043;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            margin-top: 15px; /* Added spacing */
+        }
+        .google-sign-in-button:hover {
+            background-color: #f1f3f4;
+            border-color: #c5c5c5;
+        }
+        .google-sign-in-button img {
+            margin-right: 10px;
+            height: 20px;
+        }
         .error-message {
             color: #dc2626; /* Red-600 */
             margin-top: 15px;
@@ -247,6 +270,14 @@
             <input type="email" id="loginEmailInput" class="login-input" placeholder="Enter email" autocomplete="username">
             <input type="password" id="loginPasswordInput" class="login-input" placeholder="Enter password" autocomplete="current-password">
             <button id="loginButton" class="login-button">Login</button>
+
+            <div class="my-4 text-gray-400 text-sm">-- OR --</div>
+
+            <button id="googleSignInButton" class="google-sign-in-button">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+                Sign in with Google
+            </button>
+
             <p id="loginErrorMessage" class="error-message hidden">Incorrect email or password.</p>
             <p class="text-xs text-blue-500 mt-4">
                 Note: You can register new surveyors via the "Add New Surveyor" section.
@@ -585,13 +616,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
         import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         // You might need getStorage for RECCE diagrams later
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
-            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
+            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // <<< REPLACE WITH YOUR ACTUAL API KEY
             authDomain: "beacon-35989.firebaseapp.com",
             projectId: "beacon-35989",
             storageBucket: "beacon-35989.appspot.com",
@@ -605,12 +636,14 @@
         const analytics = getAnalytics(app); // Optional, remove if not used
         const db = getFirestore(app);
         const auth = getAuth(app); // Initialize Firebase Authentication
+        const googleProvider = new GoogleAuthProvider(); // Initialize Google Auth Provider
 
         // --- Login Elements ---
         const loginOverlay = document.getElementById('loginOverlay');
         const loginEmailInput = document.getElementById('loginEmailInput');
         const loginPasswordInput = document.getElementById('loginPasswordInput');
         const loginButton = document.getElementById('loginButton');
+        const googleSignInButton = document.getElementById('googleSignInButton'); // New Google Sign-in button
         const loginErrorMessage = document.getElementById('loginErrorMessage');
         const mainContentWrapper = document.getElementById('mainContentWrapper');
 
@@ -654,7 +687,7 @@
         const displayParcelAreaSpan = document.getElementById('displayParcelArea');
         const searchBeaconInput = document.getElementById('searchBeacon');
         const validateBtn = document.getElementById('validateBtn');
-        const validationResultsDiv = document.getElementById('validationResults');
+        const validationResultsDiv = document = document.getElementById('validationResults');
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
 
@@ -789,13 +822,18 @@
             } else if (currentQuarter === 2) {
                 startDate = new Date(currentYear, 3, 1); // Apr 1
                 endDate = new Date(currentYear, 6, 0);   // Jun 30
-            } else if (currentQuarter === 3) {
+            } else { // Quarter 3 and 4 (simplified for example, needs precise date logic if critical)
+                startDate = new Date(currentYear, 6, 1); // Jul 1
+                endDate = new Date(currentYear, 12, 0);  // Dec 31
+            }
+             if (currentQuarter === 3) {
                 startDate = new Date(currentYear, 6, 1); // Jul 1
                 endDate = new Date(currentYear, 9, 0);   // Sep 30
-            } else { // Quarter 4
+            } else if (currentQuarter === 4) {
                 startDate = new Date(currentYear, 9, 1); // Oct 1
                 endDate = new Date(currentYear, 12, 0);  // Dec 31
             }
+
 
             const q = query(
                 collection(db, "beacons"),
@@ -855,7 +893,7 @@
             }
         }
 
-        async function addSurveyor(email, password, prefix, name) {
+        async function addSurveyor(email, password, prefix, name, uid = null) {
             loadingOverlay.style.display = 'flex';
             try {
                 // 1. Check if a surveyor with the given prefix already exists
@@ -865,9 +903,14 @@
                     throw new Error(`Surveyor with prefix '${prefix}' already exists.`);
                 }
 
-                // 2. Create user in Firebase Authentication
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                let user;
+                if (uid) { // If UID is provided (e.g., from Google Sign-In)
+                    user = auth.currentUser; // Use the currently authenticated user
+                } else { // For email/password registration
+                    // 2. Create user in Firebase Authentication
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    user = userCredential.user;
+                }
 
                 // 3. Store surveyor profile in Firestore using Auth UID as document ID
                 await setDoc(doc(db, "surveyors", user.uid), {
@@ -917,6 +960,9 @@
             llmLoadingSpinner.classList.remove('hidden');
             llmOutputText.innerText = '';
             try {
+                // You will need to set up a backend endpoint (e.g., Firebase Cloud Function)
+                // to securely call the Gemini API, as direct client-side calls are not recommended
+                // due to API key exposure.
                 const response = await fetch('YOUR_GEMINI_API_ENDPOINT', { // Replace with your actual endpoint
                     method: 'POST',
                     headers: {
@@ -944,6 +990,8 @@
 
         // --- AUTHENTICATION LOGIC ---
         loginButton.addEventListener('click', handleLogin);
+        googleSignInButton.addEventListener('click', handleGoogleLogin); // New event listener for Google Sign-in
+
         loginEmailInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 loginPasswordInput.focus();
@@ -956,6 +1004,61 @@
         });
         logoutButton.addEventListener('click', handleLogout);
 
+        async function processLoginSuccess(user) {
+            // Fetch user's role from Firestore
+            const userDocRef = doc(db, "surveyors", user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists()) {
+                currentUserData = userDoc.data();
+                currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
+                showNotification(`Logged in as ${currentUserData.name || user.email}!`, 'success');
+
+                if (currentUserData.role === 'admin') {
+                    window.location.href = ADMIN_PAGE_URL; // Redirect to admin page
+                } else {
+                    loginOverlay.classList.add('hidden');
+                    mainContentWrapper.classList.remove('hidden');
+                    initApplication(); // Initialize main app content
+                }
+            } else {
+                // User exists in Auth but not in surveyors collection
+                // This scenario could happen if they sign in with Google for the first time
+                // or if their Firestore profile was deleted.
+                console.log("User profile not found in Firestore. Creating new surveyor profile.");
+                try {
+                    const newPrefix = await generateSurveyorPrefix(); // Generate a unique prefix
+                    const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
+
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        prefix: newPrefix,
+                        name: surveyorName,
+                        quota: beaconLimitPerSurveyor,
+                        lastQuotaReset: new Date().toISOString(),
+                        role: 'surveyor' // Assign default role for new Google users
+                    });
+                    currentUserData = (await getDoc(userDocRef)).data(); // Get the newly created data
+
+                    showNotification(`Welcome, new surveyor ${surveyorName}! Your profile has been created.`, 'success');
+                    addActivity(`New surveyor registered via Google: ${surveyorName} (${newPrefix}).`);
+
+                    // Proceed to main app
+                    loginOverlay.classList.add('hidden');
+                    mainContentWrapper.classList.remove('hidden');
+                    initApplication();
+                    currentUserNameSpan.textContent = currentUserData.name || user.email;
+
+                } catch (profileError) {
+                    console.error("Error creating new surveyor profile for Google user:", profileError);
+                    await signOut(auth); // Log them out if profile creation fails
+                    showNotification(`Failed to create surveyor profile: ${profileError.message}`, 'error');
+                    loginOverlay.classList.remove('hidden');
+                    mainContentWrapper.classList.add('hidden');
+                }
+            }
+        }
+
         async function handleLogin() {
             const email = loginEmailInput.value;
             const password = loginPasswordInput.value;
@@ -964,33 +1067,12 @@
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                await processLoginSuccess(userCredential.user);
 
-                // Fetch user's role from Firestore
-                const userDoc = await getDoc(doc(db, "surveyors", user.uid)); // Assuming role is in surveyors collection
-                if (userDoc.exists()) {
-                    currentUserData = userDoc.data();
-                    currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
-                    showNotification(`Logged in as ${currentUserData.name || user.email}!`, 'success');
-
-                    if (currentUserData.role === 'admin') {
-                        window.location.href = ADMIN_PAGE_URL; // Redirect to admin page
-                    } else {
-                        loginOverlay.classList.add('hidden');
-                        mainContentWrapper.classList.remove('hidden');
-                        initApplication(); // Initialize main app content
-                    }
-                } else {
-                    // User exists in Auth but not in surveyors collection (e.g., deleted Firestore profile)
-                    await signOut(auth); // Log them out from Auth
-                    showNotification('User profile not found in database. Please contact support.', 'error');
-                    loginOverlay.classList.remove('hidden');
-                    mainContentWrapper.classList.add('hidden');
-                }
             } catch (error) {
-                console.error("Error during login:", error);
+                console.error("Error during email/password login:", error);
                 let errorMessage = error.message;
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') { // invalid-credential is more generic now
                     errorMessage = 'Invalid email or password.';
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'Invalid email format.';
@@ -998,6 +1080,34 @@
                 loginErrorMessage.textContent = errorMessage;
                 loginErrorMessage.classList.remove('hidden');
                 showNotification(`Login failed: ${errorMessage}`, 'error');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function handleGoogleLogin() {
+            loginErrorMessage.classList.add('hidden');
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                // The signed-in user info.
+                const user = result.user;
+                await processLoginSuccess(user); // Use the same success processing as email/password login
+
+            } catch (error) {
+                console.error("Error during Google login:", error);
+                let errorMessage = error.message;
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'Google sign-in window was closed.';
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    errorMessage = 'Another sign-in popup was already open.';
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                    errorMessage = 'An account with the same email already exists but with different login credentials. Try logging in with Email/Password.';
+                }
+                loginErrorMessage.textContent = `Google Sign-in failed: ${errorMessage}`;
+                loginErrorMessage.classList.remove('hidden');
+                showNotification(`Google Sign-in failed: ${errorMessage}`, 'error');
             } finally {
                 loadingOverlay.style.display = 'none';
             }
@@ -1039,14 +1149,17 @@
                             currentUserNameSpan.textContent = currentUserData.name || user.email;
                         }
                     } else {
-                        // User in Auth but not in Firestore (e.g., profile deleted)
+                        // User in Auth but not in Firestore (e.g., profile deleted or first Google login handled by processLoginSuccess)
+                        // If it's a first Google login, processLoginSuccess should handle it.
+                        // If it's a deleted profile, we log them out.
+                        console.warn("User authenticated but no Firestore profile found. Logging out.");
                         await signOut(auth); // Log out invalid user
-                        showNotification('User profile not found. Please log in again or contact support.', 'error');
+                        showNotification('User profile not found in database. Please log in again or contact support.', 'error');
                         loginOverlay.classList.remove('hidden');
                         mainContentWrapper.classList.add('hidden');
                     }
                 } catch (error) {
-                    console.error("Error checking user profile:", error);
+                    console.error("Error checking user profile on auth state change:", error);
                     showNotification(`Error loading profile: ${error.message}`, 'error');
                     await signOut(auth); // Log out on error
                     loginOverlay.classList.remove('hidden');
