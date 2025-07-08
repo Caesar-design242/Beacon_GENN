@@ -7,325 +7,548 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Your existing CSS styles go here */
-        .beacon-marker:hover { /* This CSS rule has a duplicate selector and missing property/value, consider removing one */
-            color: #991b1b;
+        /* Custom CSS for animations and styling */
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        /* ... rest of your CSS ... */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Blue-900 to Indigo-900 */
+        }
+        .unique-beacon-display {
+            background-color: #e0f2fe; /* Blue-50 */
+            border: 1px solid #90cdf4; /* Blue-200 */
+            color: #2b6cb0; /* Blue-800 */
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .form-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #fff;
+            border-color: #e2e8f0;
+            border-width: 1px;
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.75rem 1rem; /* p-3 */
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* ring-2 focus:ring-blue-500 */
+            border-color: #4299e1; /* focus:border-blue-500 */
+        }
+        .btn-primary {
+            background-color: #2563eb; /* Blue-700 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8; /* Blue-800 */
+        }
+        .stats-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #e0f2fe; /* Light blue background for map area */
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border: 1px solid #bfdbfe;
+        }
+        .beacon-marker {
+            position: absolute;
+            font-size: 1.5rem;
+            color: #ef4444; /* Red-500 */
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .beacon-marker:hover {
+            color: #dc2626; /* Red-600 */
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #0d6efd; /* Bootstrap primary blue */
+            animation: spin 1s ease infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1001;
+        }
+        .notification.show {
+            opacity: 1;
+        }
+        .notification.success { background-color: #28a745; }
+        .notification.error { background-color: #dc3545; }
+        .notification.warning { background-color: #ffc107; color: #333; }
+        .notification.info { background-color: #17a2b8; }
+
+        .batch-results {
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #f9fafb;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+        .batch-results div {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .batch-results div:last-child {
+            border-bottom: none;
+        }
+
+        .generated-beacons-display-custom {
+            background-color: #e6fffa; /* Tailwind green-50 */
+            border: 1px solid #b2f5ea; /* Tailwind green-200 */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+        }
+        .coordinates-display {
+            background-color: #f0f9ff; /* Tailwind blue-50 */
+            border: 1px solid #bfdbfe; /* Tailwind blue-200 */
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-top: 1rem;
+            font-size: 0.9em;
+        }
+        .file-upload-area {
+            border: 2px dashed #cbd5e0; /* Gray-300 */
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .file-upload-area:hover {
+            border-color: #93c5fd; /* Blue-300 */
+            background-color: #eff6ff; /* Blue-50 */
+        }
+
+        /* Login Overlay Styles */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Same as your nav bg */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Higher than loading overlay */
+        }
+        .login-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb; /* Blue-700 */
+            color: white;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .login-button:hover {
+            background-color: #1d4ed8; /* Blue-800 */
+        }
+        .error-message {
+            color: #dc2626; /* Red-600 */
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Loading data...</p>
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">BeaconGen Login</h2>
+            <input type="email" id="loginEmailInput" class="login-input" placeholder="Enter email" autocomplete="username">
+            <input type="password" id="loginPasswordInput" class="login-input" placeholder="Enter password" autocomplete="current-password">
+            <button id="loginButton" class="login-button">Login</button>
+            <p id="loginErrorMessage" class="error-message hidden">Incorrect email or password.</p>
+            <p class="text-xs text-blue-500 mt-4">
+                Note: You can register new surveyors via the "Add New Surveyor" section.
+            </p>
+        </div>
     </div>
-    <div id="notificationContainer" class="notification"></div>
-    <nav class="gradient-bg text-white shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                 <div class="flex items-center">
-                    <i class="fas fa-map-marker-alt text-2xl mr-3"></i>
-                    <span class="text-xl font-bold">BeaconGen 2025</span>
-                    <span class="ml-2 text-sm opacity-75">Edo State Cadastral Beacon Management</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm">Year: <span class="font-bold" id="yearText">2025</span></span>
-                    <span class="text-sm">Welcome, <span id="currentUser">Survey Admin</span></span>
-                    <button class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-md transition-all duration-200">
-                        <i class="fas fa-user"></i>
-                    </button>
-                </div>
-            </div>
+
+    <div id="mainContentWrapper" class="hidden">
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
         </div>
-    </nav>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-8 fade-in">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastral Beacon Generation System 2025</h1>
-            <p class="text-gray-600">Enhanced cadastral beacon number generation with GIS integration for land surveying - Edo State, Nigeria</p>
-        </div>
-        <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg card-shadow">
-            <div class="flex items-center">
-                <i class="fas fa-refresh mr-3 text-xl"></i>
-                <div id="systemStatusText">
+        <div id="notificationContainer" class="notification"></div>
+        <nav class="gradient-bg text-white shadow-2xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                     <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-2xl mr-3"></i>
+                        <span class="text-xl font-bold">BeaconGen 2025</span>
+                        <span class="ml-2 text-sm opacity-75">Edo State Cadastral Beacon Management</span>
                     </div>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Beacons Generated (2025)</p>
-                        <p class="text-2xl font-bold text-blue-600" id="totalBeacons">0</p>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-map-pin text-blue-600"></i>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm">Year: <span class="font-bold" id="yearText">2025</span></span>
+                        <span class="text-sm">Welcome, <span id="currentUserName">Guest</span></span>
+                        <button id="logoutButton" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-md transition-all duration-200">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Active Surveyors</p>
-                        <p class="text-2xl font-bold text-green-600" id="activeSurveyors">0</p>
+        </nav>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8 fade-in">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastral Beacon Generation System 2025</h1>
+                <p class="text-gray-600">Enhanced cadastral beacon number generation with GIS integration for land surveying - Edo State, Nigeria</p>
+            </div>
+            <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg card-shadow">
+                <div class="flex items-center">
+                    <i class="fas fa-refresh mr-3 text-xl"></i>
+                    <div id="systemStatusText">
+                        </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Beacons Generated (2025)</p>
+                            <p class="text-2xl font-bold text-blue-600" id="totalBeacons">0</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-map-pin text-blue-600"></i>
+                        </div>
                     </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-users text-green-600"></i>
+                </div>
+                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active Surveyors</p>
+                            <p class="text-2xl font-bold text-green-600" id="activeSurveyors">0</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-users text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Parcels Surveyed</p>
+                            <p class="text-2xl font-bold text-purple-600" id="parcelsCount">0</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-draw-polygon text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">GIS Coordinates</p>
+                            <p class="text-2xl font-bold text-indigo-600" id="gisPoints">0</p>
+                        </div>
+                        <div class="bg-indigo-100 p-3 rounded-full">
+                            <i class="fas fa-globe text-indigo-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">System Uptime</p>
+                            <p class="text-2xl font-bold text-orange-600">99.9%</p>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-full">
+                            <i class="fas fa-server text-orange-600"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Parcels Surveyed</p>
-                        <p class="text-2xl font-bold text-purple-600" id="parcelsCount">0</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg card-shadow p-6 fade-in">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-plus-circle text-blue-600 mr-2"></i>
+                        Generate Cadastral Beacon Numbers
+                    </h2>
+                    <div class="unique-beacon-display">
+                        <i class="fas fa-certificate mr-2"></i>
+                        Unique Beacon ID: <span id="uniqueBeaconId">SC/ED AA0000AZ</span>
                     </div>
-                    <div class="bg-purple-100 p-3 rounded-full">
-                        <i class="fas fa-draw-polygon text-purple-600"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">GIS Coordinates</p>
-                        <p class="text-2xl font-bold text-indigo-600" id="gisPoints">0</p>
-                    </div>
-                    <div class="bg-indigo-100 p-3 rounded-full">
-                        <i class="fas fa-globe text-indigo-600"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">System Uptime</p>
-                        <p class="text-2xl font-bold text-orange-600">99.9%</p>
-                    </div>
-                    <div class="bg-orange-100 p-3 rounded-full">
-                        <i class="fas fa-server text-orange-600"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white rounded-lg card-shadow p-6 fade-in">
-                <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-plus-circle text-blue-600 mr-2"></i>
-                    Generate Cadastral Beacon Numbers
-                </h2>
-                <div class="unique-beacon-display">
-                    <i class="fas fa-certificate mr-2"></i>
-                    Unique Beacon ID: <span id="uniqueBeaconId">SC/ED AA0000AZ</span>
-                </div>
-                <form id="beaconForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Surveyor Registration</label>
-                        <select id="surveyorSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select Surveyor</option>
+                    <form id="beaconForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surveyor Registration</label>
+                            <select id="surveyorSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Surveyor</option>
+                                </select>
+                            <div id="surveyorQuota" class="mt-2 text-sm text-gray-600"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Number of Beacons</label>
+                            <input type="number" id="beaconCount" min="1" max="50" value="4"
+                                class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter number of beacons">
+                            <p class="text-xs text-gray-500 mt-1">Maximum 50 beacons per parcel</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Origin Beacon Coordinates (Required)</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Latitude</label>
+                                    <input type="number" id="latitude" step="0.00001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border transparent" placeholder="6.3350" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Longitude</label>
+                                    <input type="number" id="longitude" step="0.000001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="5.6037" required>
+                                </div>
+                            </div>
+                            <p class="text-xs text-blue-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Origin coordinates will be recorded for GIS integration.
+                                Other beacon coordinates will be generated from RECCE diagram.
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Area (Hectares)</label>
+                            <input type="number" id="parcelArea" step="0.01" min="0.01"
+                                class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="2.5">
+                            <p class="text-xs text-gray-500 mt-1">Enter the total area of the parcel in hectares</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Local Government Area</label>
+                            <select id="lgaSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select LGA</option>
+                                <option value="egor">Egor</option>
+                                <option value="oredo">Oredo</option>
+                                <option value="ikpoba-okha">Ikpoba-Okha</option>
+                                <option value="igueben">Igueben</option>
+                                <option value="ovia-north-east">Ovia North-East</option>
+                                <option value="uhunmwonde">Uhunmwonde</option>
+                                <option value="orhionmwon">Orhionmwon</option>
+                                <option value="ovia-south-west">Ovia South West</option>
+                                <option value="esan-central">Esan Central</option>
+                                <option value="esan-south-east">Esan-South-East</option>
+                                <option value="esan-west">Esan-West</option>
                             </select>
-                        <div id="surveyorQuota" class="mt-2 text-sm text-gray-600"></div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Number of Beacons</label>
-                        <input type="number" id="beaconCount" min="1" max="50" value="4"
-                            class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter number of beacons">
-                        <p class="text-xs text-gray-500 mt-1">Maximum 50 beacons per parcel</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Origin Beacon Coordinates (Required)</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Latitude</label>
-                                <input type="number" id="latitude" step="0.00001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border transparent" placeholder="6.3350" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">RECCE Diagram Upload (Required for GIS)</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Click to upload or drag and drop RECCE diagram</p>
+                                <p class="text-xs text-gray-500">Required for coordinate generation via GIS integration</p>
+                                <p class="text-xs text-gray-500">Supported formats: PDF, JPG, PNG, DWG (Max 10MB)</p>
+                                <input type="file" id="recceDiagram" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.dwg" multiple>
                             </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Longitude</label>
-                                <input type="number" id="longitude" step="0.000001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="5.6037" required>
+                            <div id="uploadedFiles" class="mt-2"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Description</label>
+                            <textarea id="description" rows="3" class="form-input w-full p-3 border border gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Describe the parcel location and purpose..."></textarea>
+                            <div class="flex space-x-2 mt-2">
+                                <button type="button" id="enhanceDescriptionBtn" class="bg-blue-500 text white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm">
+     ✨ Enhance Description
+                                </button>
+                                <button type="button" id="summarizeDescriptionBtn" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm">
+     ✨ Summarize Description
+                                </button>
+                            </div>
+                            <div id="llmOutputContainer" class="mt-4 p-4 bg-gray-100 rounded-md border border-gray-200 hidden">
+                                <p class="font-semibold text-gray-700 mb-2">LLM Output:</p>
+                                <div id="llmOutputText" class="text-gray-800 whitespace-pre-wrap"></div>
+                                <div id="llmLoadingSpinner" class="hidden text-center mt-2">
+                                    <div class="spinner w-6 h-6 border-2 mx-auto"></div>
+                                    <p class="text-sm text-gray-600">Generating...</p>
+                                </div>
+                                <button type="button" id="copyLlmOutputBtn" class="mt-3 bg-green-500 text white px-3 py-1 rounded-md hover:bg-green-600 transition-colors duration-200 text-xs">
+                                    Copy to Clipboard
+                                </button>
+                                <button type="button" id="clearLlmOutputBtn" class="mt-3 ml-2 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200 text-xs">
+                                    Clear Output
+                                </button>
                             </div>
                         </div>
-                        <p class="text-xs text-blue-600 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Origin coordinates will be recorded for GIS integration.
-                            Other beacon coordinates will be generated from RECCE diagram.
-                        </p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Area (Hectares)</label>
-                        <input type="number" id="parcelArea" step="0.01" min="0.01"
-                            class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="2.5">
-                        <p class="text-xs text-gray-500 mt-1">Enter the total area of the parcel in hectares</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Local Government Area</label>
-                        <select id="lgaSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select LGA</option>
-                            <option value="egor">Egor</option>
-                            <option value="oredo">Oredo</option>
-                            <option value="ikpoba-okha">Ikpoba-Okha</option>
-                            <option value="igueben">Igueben</option>
-                            <option value="ovia-north-east">Ovia North-East</option>
-                            <option value="uhunmwonde">Uhunmwonde</option>
-                            <option value="orhionmwon">Orhionmwon</option>
-                            <option value="ovia-south-west">Ovia South West</option>
-                            <option value="esan-central">Esan Central</option>
-                            <option value="esan-south-east">Esan-South-East</option>
-                            <option value="esan-west">Esan-West</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">RECCE Diagram Upload (Required for GIS)</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                            <p class="text-gray-600 mb-2">Click to upload or drag and drop RECCE diagram</p>
-                            <p class="text-xs text-gray-500">Required for coordinate generation via GIS integration</p>
-                            <p class="text-xs text-gray-500">Supported formats: PDF, JPG, PNG, DWG (Max 10MB)</p>
-                            <input type="file" id="recceDiagram" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.dwg" multiple>
+                        <button type="submit" class="btn-primary w-full text-white py-3 px-6 rounded-md transition-colors duration-200 pulse-animation">
+                            <i class="fas fa-magic mr-2"></i>Generate Cadastral Beacon Numbers
+                        </button>
+                    </form>
+                    <div id="generatedBeacons" class="mt-6 hidden generated-beacons-display-custom">
+                        <h3 class="font-bold text-green-800 mb-2">Generated Cadastral Beacon Numbers:</h3>
+                        <div id="beaconsList" class="batch-results space-y-2"></div>
+                        <div class="coordinates-display">
+                            <h4 class="font-bold mb-2">GIS Coordinates Recorded:</h4>
+                            <div id="coordinatesList"></div>
                         </div>
-                        <div id="uploadedFiles" class="mt-2"></div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Description</label>
-                        <textarea id="description" rows="3" class="form-input w-full p-3 border border gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Describe the parcel location and purpose..."></textarea>
-                        <div class="flex space-x-2 mt-2">
-                            <button type="button" id="enhanceDescriptionBtn" class="bg-blue-500 text white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm">
- ✨ Enhance Description
-                            </button>
-                            <button type="button" id="summarizeDescriptionBtn" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm">
- ✨ Summarize Description
-                            </button>
+                        <div class="mt-4 text-sm text-green-700">
+                            <p><strong>Format:</strong> SC/ED AA0000AZ</p>
+                            <p><strong>Unique ID:</strong> <span id="generatedUniqueId"></span></p>
+                            <p><strong>Total Generated:</strong> <span id="totalGenerated">0</span></p>
+                            <p><strong>Parcel Area:</strong> <span id="displayParcelArea">0</span> hectares</p>
+                            <p><strong>GIS Integration:</strong> <span class="text-blue-600">Coordinates recorded for mapping</span></p>
                         </div>
-                        <div id="llmOutputContainer" class="mt-4 p-4 bg-gray-100 rounded-md border border-gray-200 hidden">
-                            <p class="font-semibold text-gray-700 mb-2">LLM Output:</p>
-                            <div id="llmOutputText" class="text-gray-800 whitespace-pre-wrap"></div>
-                            <div id="llmLoadingSpinner" class="hidden text-center mt-2">
-                                <div class="spinner w-6 h-6 border-2 mx-auto"></div>
-                                <p class="text-sm text-gray-600">Generating...</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg card-shadow p-6 fade-in">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-search text-purple-600 mr-2"></i>
+                        Pattern Matching & Validation
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Search/Validate Beacon</label>
+                            <div class="relative">
+                                <input type="text" id="searchBeacon" class="form-input w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Enter beacon number (e.g., SC/ED AA0001AZ)">
+                                <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
                             </div>
-                            <button type="button" id="copyLlmOutputBtn" class="mt-3 bg-green-500 text white px-3 py-1 rounded-md hover:bg-green-600 transition-colors duration-200 text-xs">
-                                Copy to Clipboard
-                            </button>
-                            <button type="button" id="clearLlmOutputBtn" class="mt-3 ml-2 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200 text-xs">
-                                Clear Output
-                            </button>
+                        </div>
+                        <button id="validateBtn" class="w-full bg-purple-600 text-white py-3 px-6 rounded md hover:bg-purple-700 transition-colors duration-200">
+                            <i class="fas fa-check-circle mr-2"></i>Validate Beacon
+                        </button>
+                    </div>
+                    <div id="validationResults" class="mt-6 hidden">
+                        <h3 class="font-bold text-gray-800 mb-3">Validation Results:</h3>
+                        <div id="validationContent" class="space-y-2"></div>
+                    </div>
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <h3 class="font-bold text-blue-800 mb-2">2025 Cadastral Guidelines</h3>
+                        <div class="text-sm text-blue-700">
+                            <p><strong>New Requirements:</strong></p>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>200 beacon limit per surveyor per <strong>quarter</strong></li>
+                                <li>Quota resets every quarter (Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec)</li>
+                                <li>Origin coordinates mandatory for GIS integration</li>
+                                <li>RECCE diagram required for coordinate generation</li>
+                                <li>All beacons must be validated through the system</li>
+                                <li>Minimum 4 beacons per parcel maintained</li>
+                            </ul>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary w-full text-white py-3 px-6 rounded-md transition-colors duration-200 pulse-animation">
-                        <i class="fas fa-magic mr-2"></i>Generate Cadastral Beacon Numbers
-                    </button>
-                </form>
-                <div id="generatedBeacons" class="mt-6 hidden generated-beacons-display-custom">
-                    <h3 class="font-bold text-green-800 mb-2">Generated Cadastral Beacon Numbers:</h3>
-                    <div id="beaconsList" class="batch-results space-y-2"></div>
-                    <div class="coordinates-display">
-                        <h4 class="font-bold mb-2">GIS Coordinates Recorded:</h4>
-                        <div id="coordinatesList"></div>
-                    </div>
-                    <div class="mt-4 text-sm text-green-700">
-                        <p><strong>Format:</strong> SC/ED AA0000AZ</p>
-                        <p><strong>Unique ID:</strong> <span id="generatedUniqueId"></span></p>
-                        <p><strong>Total Generated:</strong> <span id="totalGenerated">0</span></p>
-                        <p><strong>Parcel Area:</strong> <span id="displayParcelArea">0</span> hectares</p>
-                        <p><strong>GIS Integration:</strong> <span class="text-blue-600">Coordinates recorded for mapping</span></p>
+                    <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-md">
+                        <h3 class="font-bold text-orange-800 mb-2">Surveyor Quotas (2025)</h3>
+                        <div class="text-sm text-orange-700">
+                            <p><strong>Allocation Status:</strong></p>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>Each surveyor: 200 beacons/year</li>
+                                <li>Quota resets January 1st</li>
+                                <li>System tracks usage automatically</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-lg card-shadow p-6 fade-in">
+            <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
                 <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-search text-purple-600 mr-2"></i>
-                    Pattern Matching & Validation
+                    <i class="fas fa-clock text-orange-600 mr-2"></i> Recent Beacon Activities
                 </h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Search/Validate Beacon</label>
-                        <div class="relative">
-                            <input type="text" id="searchBeacon" class="form-input w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                placeholder="Enter beacon number (e.g., SC/ED AA0001AZ)">
-                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                <div id="activityLog" class="batch-results space-y-3">
+                    <div class="activity-item flex items-center justify-between text-gray-700">
+                        <div>
+                            <p class="font-medium">System Initialized for 2025</p>
+                            <p class="text-xs text-gray-500">All quotas reset, new beacon numbering started.</p>
                         </div>
-                    </div>
-                    <button id="validateBtn" class="w-full bg-purple-600 text-white py-3 px-6 rounded md hover:bg-purple-700 transition-colors duration-200">
-                        <i class="fas fa-check-circle mr-2"></i>Validate Beacon
-                    </button>
-                </div>
-                <div id="validationResults" class="mt-6 hidden">
-                    <h3 class="font-bold text-gray-800 mb-3">Validation Results:</h3>
-                    <div id="validationContent" class="space-y-2"></div>
-                </div>
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                    <h3 class="font-bold text-blue-800 mb-2">2025 Cadastral Guidelines</h3>
-                    <div class="text-sm text-blue-700">
-                        <p><strong>New Requirements:</strong></p>
-                        <ul class="list-disc list-inside mt-1 space-y-1">
-                            <li>200 beacon limit per surveyor per <strong>quarter</strong></li>
-                            <li>Quota resets every quarter (Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec)</li>
-                            <li>Origin coordinates mandatory for GIS integration</li>
-                            <li>RECCE diagram required for coordinate generation</li>
-                            <li>All beacons must be validated through the system</li>
-                            <li>Minimum 4 beacons per parcel maintained</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-md">
-                    <h3 class="font-bold text-orange-800 mb-2">Surveyor Quotas (2025)</h3>
-                    <div class="text-sm text-orange-700">
-                        <p><strong>Allocation Status:</strong></p>
-                        <ul class="list-disc list-inside mt-1 space-y-1">
-                            <li>Each surveyor: 200 beacons/year</li>
-                            <li>Quota resets January 1st</li>
-                            <li>System tracks usage automatically</li>
-                        </ul>
+                        <span class="text-xs text-gray-400">Jan 1, 2025</span>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <i class="fas fa-map text-green-600 mr-2"></i> Enhanced GIS Visualization - Edo State 2025
-            </h2>
-            <div class="map-container">
-                <div class="text-center">
-                    <i class="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
-                    <p class="text-gray-600">Interactive Cadastral Map with GIS Integration</p>
-                    <p class="text-sm text-gray-500 mt-2">Real-time coordinate tracking and RECCE diagram integration</p>
-                    <div class="mt-4 text-xs text-gray-400">
-                        <p>Click on beacon markers to view coordinates and details</p>
-                    </div>
-                </div>
-                <div class="beacon-marker" style="top: 20%; left: 30%;" onclick="showBeaconInfo('SC/ED AA0001AZ', '6.3350', '5.6037')">
-                    <i class="fas fa-map-pin" title="SC/ED AA0001AZ - Origin Point"></i>
-                </div>
-                <div class="beacon-marker" style="top: 40%; left: 60%;" onclick="showBeaconInfo('SC/ED AA0002BK', '6.3360', '5.6047')">
-                    <i class="fas fa-map-pin" title="SC/ED AA0002BK"></i>
-                </div>
-                <div class="beacon-marker" style="top: 60%; left: 25%;" onclick="showBeaconInfo('SC/ED AA0003BN', '6.3340', '5.6027')">
-                    <i class="fas fa-map-pin" title="SC/ED AA0003BN"></i>
-                </div>
-                <div class="beacon-marker" style="top: 35%; left: 70%;" onclick="showBeaconInfo('SC/ED AA0004ZG', '6.3370', '5.6057')">
-                    <i class="fas fa-map-pin" title="SC/ED AA0004ZG"></i>
-                </div>
-            </div>
-        </div>
-        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <i class="fas fa-clock text-orange-600 mr-2"></i> Recent Beacon Activities
-            </h2>
-            <div id="activityLog" class="batch-results space-y-3">
-                <div class="activity-item flex items-center justify-between text-gray-700">
-                    <div>
-                        <p class="font-medium">System Initialized for 2025</p>
-                        <p class="text-xs text-gray-500">All quotas reset, new beacon numbering started.</p>
-                    </div>
-                    <span class="text-xs text-gray-400">Jan 1, 2025</span>
-                </div>
-            </div>
-        </div>
-        <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor</h4>
+            <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management
+                </h2>
+                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="newSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
+                        <input type="email" id="newSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label for="newSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
+                        <input type="password" id="newSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
                     <div>
                         <label for="newPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
                         <input type="text" id="newPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
@@ -336,11 +559,11 @@
                     </div>
                 </div>
                 <button type="button" id="addSurveyorBtn" class="bg-green-600 text-white px-4 py-3 rounded md hover:bg-green-700 transition-colors duration-200">
-                    <i class="fas fa-user-plus mr-1"></i> Add Surveyor
+                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor
                 </button>
                 <div class="mt-8 pt-4 border-t border-gray-200">
                     <h4 class="text-lg font-semibold mb-3 text-blue-800">Bulk Add Surveyors (CSV)</h4>
-                    <p class="text-sm text-gray-600 mb-4">Upload a CSV file with two columns: `Prefix,Name` (e.g., "AB,John Doe"). Each row will be a new surveyor.</p>
+                    <p class="text-sm text-gray-600 mb-4">Upload a CSV file with columns: `Email,Password,Prefix,Name`. Each row will be a new surveyor account and profile.</p>
                     <div class="file-upload-area" id="csvUploadArea">
                         <input type="file" id="csvFileInput" accept=".csv" class="hidden">
                         <p class="text-gray-500"><i class="fas fa-file-csv text-2xl mb-2"></i></p>
@@ -351,50 +574,57 @@
                         Upload CSV
                     </button>
                 </div>
-            </h2>
+            </div>
         </div>
-    </div>
-    <footer class="bg-gray-100 text-gray-600 text-center py-6 mt-12 shadow-inner">
-        <p>&copy; <span id="currentYearFooter">2025</span> BeaconGen. All rights reserved.</p>
-        <p>Developed with <span class="text-red-500">&hearts;</span> by EdoGIS Solutions. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
-    </footer>
-
-    <script type="module">
+        <footer class="bg-gray-100 text-gray-600 text-center py-6 mt-12 shadow-inner">
+            <p>&copy; <span id="currentYearFooter">2025</span> BeaconGen. All rights reserved.</p>
+            <p>Developed with <span class="text-red-500">&hearts;</span> by EdoGIS Solutions. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
+        </footer>
+    </div> <script type="module">
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
-        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        // Import other Firebase services if needed, e.g., getStorage for file uploads
+        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        // You might need getStorage for RECCE diagrams later
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
         // --- Firebase Configuration ---
-         // Your Firebase configuration
-            const firebaseConfig = {
-                apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
-                authDomain: "beacon-35989.firebaseapp.com",
-                projectId: "beacon-35989",
-                storageBucket: "beacon-35989.appspot.com",
-                messagingSenderId: "130634267193",
-                appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-                measurementId: "G-ZG50RM7P47"
-            };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // Use your actual API Key
+            authDomain: "beacon-35989.firebaseapp.com",
+            projectId: "beacon-35989",
+            storageBucket: "beacon-35989.appspot.com",
+            messagingSenderId: "130634267193",
+            appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+            measurementId: "G-ZG50RM7P47"
+        };
 
         // --- Initialize Firebase App and Services ---
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app); // Optional, remove if not used
         const db = getFirestore(app);
+        const auth = getAuth(app); // Initialize Firebase Authentication
+
+        // --- Login Elements ---
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginEmailInput = document.getElementById('loginEmailInput');
+        const loginPasswordInput = document.getElementById('loginPasswordInput');
+        const loginButton = document.getElementById('loginButton');
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+        const mainContentWrapper = document.getElementById('mainContentWrapper');
 
         // --- Global DOM Element References ---
-        // Declare ALL your DOM elements here at the very beginning
         const loadingOverlay = document.getElementById('loadingOverlay');
         const notificationContainer = document.getElementById('notificationContainer');
         const systemStatusText = document.getElementById('systemStatusText');
         const yearText = document.getElementById('yearText');
-        const currentUserSpan = document.getElementById('currentUser'); // Renamed to avoid conflict
-        const totalBeaconsSpan = document.getElementById('totalBeacons'); // Renamed to avoid conflict
-        const activeSurveyorsSpan = document.getElementById('activeSurveyors'); // Renamed to avoid conflict
-        const parcelsCountSpan = document.getElementById('parcelsCount'); // Renamed to avoid conflict
-        const gisPointsSpan = document.getElementById('gisPoints'); // Renamed to avoid conflict
+        const currentUserNameSpan = document.getElementById('currentUserName');
+        const logoutButton = document.getElementById('logoutButton');
+        const totalBeaconsSpan = document.getElementById('totalBeacons');
+        const activeSurveyorsSpan = document.getElementById('activeSurveyors');
+        const parcelsCountSpan = document.getElementById('parcelsCount');
+        const gisPointsSpan = document.getElementById('gisPoints');
 
         const uniqueBeaconIdSpan = document.getElementById('uniqueBeaconId');
         const beaconForm = document.getElementById('beaconForm');
@@ -427,9 +657,14 @@
         const validationResultsDiv = document.getElementById('validationResults');
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
+
+        // New surveyor registration elements
+        const newSurveyorEmailInput = document.getElementById('newSurveyorEmail');
+        const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword');
         const newPrefixInput = document.getElementById('newPrefix');
         const newNameInput = document.getElementById('newName');
         const addSurveyorBtn = document.getElementById('addSurveyorBtn');
+
         const csvUploadArea = document.getElementById('csvUploadArea');
         const csvFileInput = document.getElementById('csvFileInput');
         const csvFileNameDisplay = document.getElementById('csvFileNameDisplay');
@@ -439,40 +674,31 @@
         // --- Global Application State Variables ---
         let lastBeaconSerialNum = 'AA0000AZ'; // Example initial value
         let surveyors = [];
-        let userId = "surveyAdminId"; // Default user ID for demonstration
-        let generatedBeaconsHistory = [];
+        let currentUserData = null; // Will store current logged-in user's Firestore data
         const beaconLimitPerSurveyor = 200; // Per quarter
         const currentYear = new Date().getFullYear();
         let currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1; // 1-4
-        let userBeaconCountInQuarter = 0;
-        const adminId = "admin123"; // Example admin ID
+        let userBeaconCountInQuarter = 0; // This will be dynamic based on logged-in surveyor
+        const ADMIN_PAGE_URL = 'confirmation.html'; // Path to your admin confirmation page
 
         // --- Helper Functions ---
         async function testFirestoreConnection() {
             try {
-                // Fetch the test document
                 const docRef = doc(db, "testCollection", "testDoc");
                 const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    console.log("✅ Document data:", docSnap.data());
-                    if (systemStatusText) {
+                if (systemStatusText) {
+                    if (docSnap.exists()) {
                         systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
-                    }
-                } else {
-                    console.log("❌ No such document!");
-                    if (systemStatusText) {
+                    } else {
                         systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
                     }
                 }
-
             } catch (error) {
                 console.error("Error during Firebase initialization or data fetch:", error);
                 if (systemStatusText) {
                     systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
                 }
             } finally {
-                // This hides the loading overlay
                 if (loadingOverlay) {
                     loadingOverlay.style.display = 'none';
                 }
@@ -520,55 +746,72 @@
                     suffixChar1++;
                     if (suffixChar1 > 'Z'.charCodeAt(0)) {
                         suffixChar1 = 'A'.charCodeAt(0);
-                        // This case implies prefix change or cycle completion, extend as needed
                         showNotification('Beacon serial numbers are nearing exhaustion for this prefix. Consider new prefixes.', 'warning');
                     }
                 }
                 suffix = String.fromCharCode(suffixChar1) + String.fromCharCode(suffixChar2);
             }
-
             return prefix + String(number).padStart(4, '0') + suffix;
         }
 
         async function generateSurveyorPrefix() {
-            // Function to generate a unique 2-letter prefix for a new surveyor
             const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             let prefix;
             let isUnique = false;
             let attempts = 0;
             const maxAttempts = 1000;
-
             while (!isUnique && attempts < maxAttempts) {
                 const char1 = alphabet[Math.floor(Math.random() * alphabet.length)];
                 const char2 = alphabet[Math.floor(Math.random() * alphabet.length)];
                 prefix = char1 + char2;
-
                 const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
                 const querySnapshot = await getDocs(q);
-
                 if (querySnapshot.empty) {
                     isUnique = true;
                 }
                 attempts++;
             }
-
             if (!isUnique) {
                 throw new Error("Could not generate a unique surveyor prefix after multiple attempts.");
             }
             return prefix;
         }
 
-        function calculateUsageForSurveyor(surveyorId) {
-            // Implement logic to calculate surveyor's usage for the current quarter
-            // This would query 'beacons' collection where surveyorId matches and timestamp is within the quarter
-            // For now, return a placeholder:
-            return Math.floor(Math.random() * beaconLimitPerSurveyor); // Random usage for demo
+        async function calculateUsageForSurveyor(surveyorId) {
+            const currentYear = new Date().getFullYear();
+            const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1; // 1-4
+
+            // Define quarter start and end dates for the current year and quarter
+            let startDate, endDate;
+            if (currentQuarter === 1) {
+                startDate = new Date(currentYear, 0, 1); // Jan 1
+                endDate = new Date(currentYear, 3, 0);   // Mar 31
+            } else if (currentQuarter === 2) {
+                startDate = new Date(currentYear, 3, 1); // Apr 1
+                endDate = new Date(currentYear, 6, 0);   // Jun 30
+            } else if (currentQuarter === 3) {
+                startDate = new Date(currentYear, 6, 1); // Jul 1
+                endDate = new Date(currentYear, 9, 0);   // Sep 30
+            } else { // Quarter 4
+                startDate = new Date(currentYear, 9, 1); // Oct 1
+                endDate = new Date(currentYear, 12, 0);  // Dec 31
+            }
+
+            const q = query(
+                collection(db, "beacons"),
+                where("surveyorId", "==", surveyorId),
+                where("generatedAt", ">=", startDate.toISOString()),
+                where("generatedAt", "<=", endDate.toISOString())
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.size;
         }
 
-        function updateSurveyorQuotaDisplay(surveyorId) {
+
+        async function updateSurveyorQuotaDisplay(surveyorId) {
             const surveyor = surveyors.find(s => s.id === surveyorId);
             if (surveyor) {
-                userBeaconCountInQuarter = calculateUsageForSurveyor(surveyor.id);
+                userBeaconCountInQuarter = await calculateUsageForSurveyor(surveyor.id);
                 surveyorQuotaDiv.textContent = `Beacons used this quarter: ${userBeaconCountInQuarter}/${beaconLimitPerSurveyor}`;
                 surveyorQuotaDiv.className = `mt-2 text-sm ${userBeaconCountInQuarter >= beaconLimitPerSurveyor ? 'text-red-600 font-bold' : 'text-gray-600'}`;
                 if (userBeaconCountInQuarter >= beaconLimitPerSurveyor) {
@@ -593,9 +836,17 @@
                     option.textContent = `${data.prefix} - ${data.name}`;
                     surveyorSelect.appendChild(option);
                 });
-                if (surveyors.length > 0) {
+                // If a user is logged in, select their surveyor profile
+                if (auth.currentUser && currentUserData) {
+                    surveyorSelect.value = auth.currentUser.uid;
+                    updateSurveyorQuotaDisplay(auth.currentUser.uid);
+                    surveyorSelect.disabled = true; // Prevent changing surveyor if logged in as one
+                } else if (surveyors.length > 0) {
                     surveyorSelect.value = surveyors[0].id; // Select the first surveyor by default
                     updateSurveyorQuotaDisplay(surveyors[0].id);
+                    surveyorSelect.disabled = false;
+                } else {
+                    surveyorSelect.disabled = false;
                 }
                 activeSurveyorsSpan.textContent = surveyors.length;
             } catch (error) {
@@ -604,31 +855,48 @@
             }
         }
 
-        async function addSurveyor(prefix, name) {
+        async function addSurveyor(email, password, prefix, name) {
+            loadingOverlay.style.display = 'flex';
             try {
-                // Check if a surveyor with the given prefix already exists
-                const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    showNotification(`Surveyor with prefix '${prefix}' already exists.`, 'error');
-                    return false;
+                // 1. Check if a surveyor with the given prefix already exists
+                const qPrefix = query(collection(db, "surveyors"), where("prefix", "==", prefix));
+                const querySnapshotPrefix = await getDocs(qPrefix);
+                if (!querySnapshotPrefix.empty) {
+                    throw new Error(`Surveyor with prefix '${prefix}' already exists.`);
                 }
 
-                await addDoc(collection(db, "surveyors"), {
+                // 2. Create user in Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 3. Store surveyor profile in Firestore using Auth UID as document ID
+                await setDoc(doc(db, "surveyors", user.uid), {
+                    email: email,
                     prefix: prefix,
                     name: name,
                     quota: beaconLimitPerSurveyor, // Initial quota
-                    lastQuotaReset: new Date().toISOString() // Track last reset
+                    lastQuotaReset: new Date().toISOString(), // Track last reset
+                    role: 'surveyor' // Assign default role
                 });
-                showNotification('Surveyor added successfully!', 'success');
+
+                showNotification('Surveyor registered successfully!', 'success');
                 await loadSurveyors(); // Reload surveyors into dropdown
-                addActivity(`Added new surveyor: ${name} (${prefix}).`);
+                addActivity(`Registered new surveyor: ${name} (${prefix}).`);
                 return true;
             } catch (error) {
                 console.error("Error adding surveyor:", error);
-                showNotification(`Error adding surveyor: ${error.message}`, 'error');
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'The email address is already in use by another account.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'The email address is not valid.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'The password is too weak. It must be at least 6 characters long.';
+                }
+                showNotification(`Error registering surveyor: ${errorMessage}`, 'error');
                 return false;
+            } finally {
+                loadingOverlay.style.display = 'none';
             }
         }
 
@@ -674,24 +942,148 @@
             }
         }
 
+        // --- AUTHENTICATION LOGIC ---
+        loginButton.addEventListener('click', handleLogin);
+        loginEmailInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                loginPasswordInput.focus();
+            }
+        });
+        loginPasswordInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                handleLogin();
+            }
+        });
+        logoutButton.addEventListener('click', handleLogout);
 
-        // --- Main Application Logic (DOMContentLoaded) ---
-        document.addEventListener('DOMContentLoaded', async () => {
+        async function handleLogin() {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            loginErrorMessage.classList.add('hidden');
+            loadingOverlay.style.display = 'flex'; // Show loading
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Fetch user's role from Firestore
+                const userDoc = await getDoc(doc(db, "surveyors", user.uid)); // Assuming role is in surveyors collection
+                if (userDoc.exists()) {
+                    currentUserData = userDoc.data();
+                    currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
+                    showNotification(`Logged in as ${currentUserData.name || user.email}!`, 'success');
+
+                    if (currentUserData.role === 'admin') {
+                        window.location.href = ADMIN_PAGE_URL; // Redirect to admin page
+                    } else {
+                        loginOverlay.classList.add('hidden');
+                        mainContentWrapper.classList.remove('hidden');
+                        initApplication(); // Initialize main app content
+                    }
+                } else {
+                    // User exists in Auth but not in surveyors collection (e.g., deleted Firestore profile)
+                    await signOut(auth); // Log them out from Auth
+                    showNotification('User profile not found in database. Please contact support.', 'error');
+                    loginOverlay.classList.remove('hidden');
+                    mainContentWrapper.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error during login:", error);
+                let errorMessage = error.message;
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    errorMessage = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email format.';
+                }
+                loginErrorMessage.textContent = errorMessage;
+                loginErrorMessage.classList.remove('hidden');
+                showNotification(`Login failed: ${errorMessage}`, 'error');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                showNotification('Logged out successfully!', 'info');
+                // Reset UI to login state
+                loginOverlay.classList.remove('hidden');
+                mainContentWrapper.classList.add('hidden');
+                currentUserNameSpan.textContent = 'Guest';
+                loginEmailInput.value = '';
+                loginPasswordInput.value = '';
+                loginErrorMessage.classList.add('hidden');
+                location.reload(); // Reload the page to ensure full reset
+            } catch (error) {
+                console.error("Error during logout:", error);
+                showNotification(`Logout failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Listen for authentication state changes (useful for auto-login/re-auth)
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in.
+                loadingOverlay.style.display = 'flex';
+                try {
+                    const userDoc = await getDoc(doc(db, "surveyors", user.uid));
+                    if (userDoc.exists()) {
+                        currentUserData = userDoc.data();
+                        if (currentUserData.role === 'admin') {
+                            window.location.href = ADMIN_PAGE_URL; // Always redirect admin
+                        } else {
+                            loginOverlay.classList.add('hidden');
+                            mainContentWrapper.classList.remove('hidden');
+                            initApplication(); // Initialize main app for non-admin users
+                            currentUserNameSpan.textContent = currentUserData.name || user.email;
+                        }
+                    } else {
+                        // User in Auth but not in Firestore (e.g., profile deleted)
+                        await signOut(auth); // Log out invalid user
+                        showNotification('User profile not found. Please log in again or contact support.', 'error');
+                        loginOverlay.classList.remove('hidden');
+                        mainContentWrapper.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error("Error checking user profile:", error);
+                    showNotification(`Error loading profile: ${error.message}`, 'error');
+                    await signOut(auth); // Log out on error
+                    loginOverlay.classList.remove('hidden');
+                    mainContentWrapper.classList.add('hidden');
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            } else {
+                // User is signed out. Show login.
+                loadingOverlay.style.display = 'none'; // Hide if it was showing
+                loginOverlay.classList.remove('hidden');
+                mainContentWrapper.classList.add('hidden');
+                currentUserNameSpan.textContent = 'Guest'; // Reset display
+            }
+        });
+
+
+        // --- Main Application Logic (inside a function now, to be called after login) ---
+        async function initApplication() {
             currentYearFooterSpan.textContent = currentYear;
             yearText.textContent = currentYear;
 
-            // Initial Firebase connection test and loading overlay hide
-            await testFirestoreConnection();
+            await testFirestoreConnection(); // Re-run connection test when app initializes
 
-            // Load initial data
-            await loadSurveyors();
+            await loadSurveyors(); // Load initial data for surveyors dropdown
 
-            // Set default date for last beacon generated
             addActivity("System Initialized for 2025");
 
             // --- Event Listeners ---
-            surveyorSelect.addEventListener('change', (event) => {
-                updateSurveyorQuotaDisplay(event.target.value);
+            surveyorSelect.addEventListener('change', async (event) => {
+                const selectedSurveyorId = event.target.value;
+                if (selectedSurveyorId) {
+                    updateSurveyorQuotaDisplay(selectedSurveyorId);
+                } else {
+                    surveyorQuotaDiv.textContent = 'Select a surveyor to see quota.';
+                    surveyorQuotaDiv.className = 'mt-2 text-sm text-gray-600';
+                }
             });
 
             beaconForm.addEventListener('submit', async (event) => {
@@ -711,8 +1103,12 @@
 
                 const beaconsToGenerate = parseInt(beaconCountInput.value);
                 if (isNaN(beaconsToGenerate) || beaconsToGenerate <= 0) {
-                    showNotification('Please enter a valid number of beacons.', 'error');
+                    showNotification('Please enter a valid number of beacons (1-50).', 'error');
                     return;
+                }
+                if (beaconsToGenerate > 50) {
+                     showNotification('Maximum 50 beacons per parcel allowed.', 'error');
+                     return;
                 }
 
                 if (userBeaconCountInQuarter + beaconsToGenerate > beaconLimitPerSurveyor) {
@@ -741,91 +1137,42 @@
                 }
 
                 // Simulate file upload (replace with actual Firebase Storage upload)
-                // In a real app, you'd upload the file to Firebase Storage here and get a download URL
                 // For this demo, we'll just acknowledge the file and move on.
+                // You would typically upload to Firebase Storage here and get a URL.
                 showNotification('RECCE Diagram uploaded (simulation).', 'info');
 
                 try {
-                    // Fetch the current last beacon number for the selected surveyor's prefix
-                    const surveyorPrefix = surveyor.prefix;
-                    const beaconQuery = query(
-                        collection(db, "beacons"),
-                        where("surveyorPrefix", "==", surveyorPrefix),
-                        // You might also want to order by creation date or a custom serial number for 'last'
-                        // For simplicity, we'll assume a mechanism to get the actual last used.
-                    );
-                    const beaconSnapshot = await getDocs(beaconQuery);
+                    // --- IMPORTANT CHANGE: Save request to 'beaconRequests' collection ---
+                    const requestData = {
+                        surveyorId: selectedSurveyorId,
+                        beaconCount: beaconsToGenerate,
+                        latitude: latitude,
+                        longitude: longitude,
+                        parcelArea: parcelArea,
+                        lga: lga,
+                        recceDiagramUrl: 'placeholder_url_for_recce_diagram.pdf', // Placeholder, replace with actual URL after upload
+                        description: descriptionTextarea.value,
+                        generatedAt: new Date().toISOString(),
+                        status: 'pending', // Set status to pending
+                        parcelUniqueId: `${surveyor.prefix}-${Date.now()}` // Example unique ID for the parcel
+                    };
 
-                    // A more robust way to get the *latest* serial, assuming serials are always increasing
-                    let currentLastSerial = surveyorPrefix + '0000AZ'; // Default if no beacons yet
-                    if (!beaconSnapshot.empty) {
-                        const sortedBeacons = beaconSnapshot.docs.map(doc => doc.data().beaconId).sort();
-                        currentLastSerial = sortedBeacons[sortedBeacons.length - 1];
-                    }
+                    await addDoc(collection(db, "beaconRequests"), requestData);
 
-                    const generatedBatch = [];
-                    const coordinatesBatch = [];
-                    const batch = db.batch(); // Create a new batch for atomic writes
+                    showNotification('Beacon request submitted for approval!', 'success');
+                    addActivity(`Submitted request for ${beaconsToGenerate} beacons for ${surveyor.name} (${surveyor.prefix}).`);
 
-                    for (let i = 0; i < beaconsToGenerate; i++) {
-                        currentLastSerial = generateNextBeaconSerial(currentLastSerial);
-                        const beaconId = `SC/ED ${currentLastSerial}`; // Example format
-
-                        // Simulate coordinate generation for other beacons (random variation for demo)
-                        const currentLat = parseFloat(latitude) + (Math.random() - 0.5) * 0.001;
-                        const currentLong = parseFloat(longitude) + (Math.random() - 0.5) * 0.001;
-
-                        const beaconData = {
-                            beaconId: beaconId,
-                            surveyorId: selectedSurveyorId,
-                            surveyorPrefix: surveyorPrefix,
-                            latitude: currentLat.toFixed(5),
-                            longitude: currentLong.toFixed(5),
-                            lga: lga,
-                            parcelArea: parcelArea,
-                            recceDiagramUrl: 'placeholder_url_for_recce_diagram.pdf', // Replace with actual uploaded URL
-                            description: descriptionTextarea.value,
-                            generatedAt: new Date().toISOString(),
-                            // Add a unique ID for the parcel if needed, linking all beacons
-                            parcelUniqueId: `${surveyorPrefix}-${Date.now()}` // Example parcel ID
-                        };
-
-                        const beaconRef = doc(collection(db, "beacons")); // Auto-generated ID
-                        batch.set(beaconRef, beaconData); // Add to batch
-
-                        generatedBatch.push(beaconId);
-                        coordinatesBatch.push({ beaconId: beaconId, latitude: beaconData.latitude, longitude: beaconData.longitude });
-                    }
-
-                    // Commit the batch write
-                    await batch.commit();
-
-                    // Update surveyor's quota (consider a Cloud Function for robust quota management)
-                    userBeaconCountInQuarter += beaconsToGenerate;
-                    // In a real app, you would update the surveyor document in Firestore
-                    showNotification(`${beaconsToGenerate} beacons generated and saved successfully!`, 'success');
-                    addActivity(`Generated ${beaconsToGenerate} beacons for ${surveyor.name} (${surveyor.prefix}).`);
-
-                    // Update UI
-                    generatedBeaconsDiv.classList.remove('hidden');
-                    beaconsListDiv.innerHTML = generatedBatch.map(id => `<div class="p-2 bg-green-100 rounded-md text-green-800">${id}</div>`).join('');
-                    coordinatesListDiv.innerHTML = coordinatesBatch.map(coord => `<div class="text-xs text-gray-700">${coord.beaconId}: Lat ${coord.latitude}, Long ${coord.longitude}</div>`).join('');
-                    generatedUniqueIdSpan.textContent = `${surveyorPrefix}-${Date.now()}`; // Example parcel ID
-                    totalGeneratedSpan.textContent = generatedBatch.length;
-                    displayParcelAreaSpan.textContent = parcelArea;
-
-                    // Update total beacons count (from current UI or re-fetch from Firestore)
-                    totalBeaconsSpan.textContent = parseInt(totalBeaconsSpan.textContent) + generatedBatch.length;
-                    parcelsCountSpan.textContent = parseInt(parcelsCountSpan.textContent) + 1; // Assuming each generation is one parcel
-                    gisPointsSpan.textContent = parseInt(gisPointsSpan.textContent) + generatedBatch.length;
-                    updateSurveyorQuotaDisplay(selectedSurveyorId); // Update display after generation
-
-                    beaconForm.reset(); // Clear the form
-                    uploadedFilesDiv.innerHTML = ''; // Clear uploaded files display
+                    // Clear the form and hide generated beacons section
+                    beaconForm.reset();
+                    uploadedFilesDiv.innerHTML = '';
+                    generatedBeaconsDiv.classList.add('hidden');
+                    beaconsListDiv.innerHTML = '';
+                    coordinatesListDiv.innerHTML = '';
+                    updateSurveyorQuotaDisplay(selectedSurveyorId); // Update quota display immediately
 
                 } catch (error) {
-                    console.error("Error generating beacons:", error);
-                    showNotification(`Error generating beacons: ${error.message}`, 'error');
+                    console.error("Error submitting beacon request:", error);
+                    showNotification(`Error submitting request: ${error.message}`, 'error');
                 }
             });
 
@@ -852,11 +1199,13 @@
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(docSnap => {
                             const data = docSnap.data();
+                            const associatedSurveyor = surveyors.find(s => s.id === data.surveyorId);
+                            const surveyorInfo = associatedSurveyor ? `${associatedSurveyor.prefix} - ${associatedSurveyor.name}` : 'Unknown';
                             validationContentDiv.innerHTML = `
                                 <div class="bg-green-50 p-3 rounded-md border border-green-200">
                                     <p class="font-bold text-green-700"><i class="fas fa-check-circle mr-1"></i> Beacon Found!</p>
                                     <p class="text-sm"><strong>ID:</strong> ${data.beaconId}</p>
-                                    <p class="text-sm"><strong>Surveyor:</strong> ${data.surveyorPrefix} (${surveyors.find(s => s.id === data.surveyorId)?.name || 'Unknown'})</p>
+                                    <p class="text-sm"><strong>Surveyor:</strong> ${surveyorInfo}</p>
                                     <p class="text-sm"><strong>Coordinates:</strong> Lat ${data.latitude}, Long ${data.longitude}</p>
                                     <p class="text-sm"><strong>LGA:</strong> ${data.lga}</p>
                                     <p class="text-sm"><strong>Parcel Area:</strong> ${data.parcelArea} ha</p>
@@ -890,20 +1239,28 @@
             });
 
             addSurveyorBtn.addEventListener('click', async () => {
+                const email = newSurveyorEmailInput.value.trim();
+                const password = newSurveyorPasswordInput.value.trim();
                 const prefix = newPrefixInput.value.trim().toUpperCase();
                 const name = newNameInput.value.trim();
 
-                if (!prefix || prefix.length !== 2 || !/^[A-Z]{2}$/.test(prefix)) {
-                    showNotification('Please enter a valid 2-letter prefix (e.g., AB).', 'error');
+                if (!email || !password || !prefix || !name) {
+                    showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration.', 'error');
                     return;
                 }
-                if (!name) {
-                    showNotification('Please enter the surveyor\'s name.', 'error');
+                if (password.length < 6) {
+                    showNotification('Password must be at least 6 characters long.', 'error');
+                    return;
+                }
+                if (!/^[A-Z]{2}$/.test(prefix)) {
+                    showNotification('Please enter a valid 2-letter prefix (e.g., AB) for the surveyor.', 'error');
                     return;
                 }
 
-                const success = await addSurveyor(prefix, name);
+                const success = await addSurveyor(email, password, prefix, name);
                 if (success) {
+                    newSurveyorEmailInput.value = '';
+                    newSurveyorPasswordInput.value = '';
                     newPrefixInput.value = '';
                     newNameInput.value = '';
                 }
@@ -978,68 +1335,89 @@
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     const text = e.target.result;
-                    const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter out empty lines
-                    if (lines.length === 0) {
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length <= 1) { // Check for headers only or empty file
                         showNotification('CSV file is empty or contains no valid data.', 'warning');
                         return;
                     }
 
                     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    const emailIndex = headers.indexOf('email');
+                    const passwordIndex = headers.indexOf('password');
                     const prefixIndex = headers.indexOf('prefix');
                     const nameIndex = headers.indexOf('name');
 
-                    if (prefixIndex === -1 || nameIndex === -1) {
-                        showNotification('CSV must contain "Prefix" and "Name" columns.', 'error');
+                    if (emailIndex === -1 || passwordIndex === -1 || prefixIndex === -1 || nameIndex === -1) {
+                        showNotification('CSV must contain "Email", "Password", "Prefix", and "Name" columns.', 'error');
                         return;
                     }
 
-                    const surveyorsToAdd = [];
+                    const surveyorsToProcess = [];
                     const errors = [];
                     const existingPrefixes = new Set(surveyors.map(s => s.prefix.toUpperCase())); // Get existing prefixes
 
                     for (let i = 1; i < lines.length; i++) { // Start from 1 to skip header
                         const parts = lines[i].split(',').map(p => p.trim());
+                        const email = parts[emailIndex] || '';
+                        const password = parts[passwordIndex] || '';
                         const prefix = parts[prefixIndex] ? parts[prefixIndex].toUpperCase() : '';
                         const name = parts[nameIndex] || '';
 
-                        if (prefix && name) {
+                        if (email && password && prefix && name) {
+                            if (password.length < 6) {
+                                errors.push(`Row ${i + 1} (${email}): Password must be at least 6 characters.`);
+                                continue;
+                            }
                             if (!/^[A-Z]{2}$/.test(prefix)) {
-                                errors.push(`Row ${i + 1}: Invalid prefix format '${prefix}'. Must be 2 uppercase letters.`);
+                                errors.push(`Row ${i + 1} (${email}): Invalid prefix format '${prefix}'. Must be 2 uppercase letters.`);
                                 continue;
                             }
                             if (existingPrefixes.has(prefix)) {
-                                errors.push(`Row ${i + 1}: Surveyor with prefix '${prefix}' already exists. Skipping.`);
+                                errors.push(`Row ${i + 1} (${email}): Surveyor with prefix '${prefix}' already exists. Skipping.`);
                                 continue;
                             }
-                            surveyorsToAdd.push({ prefix, name });
+                            surveyorsToProcess.push({ email, password, prefix, name });
                             existingPrefixes.add(prefix); // Add to set to prevent duplicates within the CSV as well
                         } else {
-                            errors.push(`Row ${i + 1}: Missing prefix or name.`);
+                            errors.push(`Row ${i + 1}: Missing required data.`);
                         }
                     }
 
-                    if (surveyorsToAdd.length > 0) {
-                        const batch = db.batch();
-                        try {
-                            surveyorsToAdd.forEach(surveyorData => {
-                                const newSurveyorRef = doc(collection(db, "surveyors")); // Auto-generate ID
-                                batch.set(newSurveyorRef, {
+                    if (surveyorsToProcess.length > 0) {
+                        loadingOverlay.style.display = 'flex';
+                        let successCount = 0;
+                        for (const surveyorData of surveyorsToProcess) {
+                            try {
+                                // Attempt to register each surveyor
+                                const userCredential = await createUserWithEmailAndPassword(auth, surveyorData.email, surveyorData.password);
+                                const user = userCredential.user;
+
+                                await setDoc(doc(db, "surveyors", user.uid), {
+                                    email: surveyorData.email,
                                     prefix: surveyorData.prefix,
                                     name: surveyorData.name,
                                     quota: beaconLimitPerSurveyor,
-                                    lastQuotaReset: new Date().toISOString()
+                                    lastQuotaReset: new Date().toISOString(),
+                                    role: 'surveyor'
                                 });
-                            });
-                            await batch.commit();
-                            showNotification(`Successfully added ${surveyorsToAdd.length} surveyors from CSV!`, 'success');
-                            await loadSurveyors(); // Reload surveyors into dropdown
-                            addActivity(`Added ${surveyorsToAdd.length} surveyors from CSV.`);
-                        } catch (error) {
-                            console.error("Error adding surveyors from CSV batch:", error);
-                            showNotification(`Error adding surveyors from CSV: ${error.message}`, 'error');
+                                successCount++;
+                            } catch (error) {
+                                let errMsg = error.message;
+                                if (error.code === 'auth/email-already-in-use') {
+                                    errMsg = 'Email already in use.';
+                                }
+                                errors.push(`Failed to register ${surveyorData.email}: ${errMsg}`);
+                                console.error(`Error registering surveyor ${surveyorData.email}:`, error);
+                            }
                         }
+                        loadingOverlay.style.display = 'none';
+
+                        showNotification(`Successfully registered ${successCount} surveyors from CSV!`, 'success');
+                        await loadSurveyors(); // Reload surveyors into dropdown
+                        addActivity(`Registered ${successCount} surveyors from CSV.`);
+
                     } else {
-                        showNotification('No valid new surveyors found in CSV or all prefixes already exist.', 'info');
+                        showNotification('No valid new surveyors found in CSV or all entries had issues.', 'info');
                     }
 
                     if (errors.length > 0) {
@@ -1056,10 +1434,7 @@
 
                 reader.readAsText(file);
             });
-        });
+        }
     </script>
 </body>
 </html>
-
-
- 
