@@ -15,7 +15,7 @@
             animation: fadeIn 0.6s ease-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }\
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .pulse-animation {
@@ -590,31 +590,24 @@
                 <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor (Admin Panel)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="adminNewSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
-                        <input type="email" id="adminNewSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label for="newSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
+                        <input type="email" id="newSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
-                        <input type="password" id="adminNewSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label for="newSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
+                        <input type="password" id="newSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
-                        <input type="text" id="adminNewPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" maxlength="2" style="text-transform: uppercase;">
+                        <label for="newPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
+                        <input type="text" id="newPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                     <div>
-                        <label for="adminNewName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
-                        <input type="text" id="adminNewName" placeholder="Enter full name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                    </div>
-                    <div class="col-span-1 md:col-span-2">
-                        <label for="newSurveyorRole" class="block text-sm font-medium text-gray-700">Role:</label>
-                        <select id="newSurveyorRole" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                            <option value="surveyor">Surveyor</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <label for="newName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
+                        <input type="text" id="newName" placeholder="Enter full name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     </div>
                 </div>
                 <button type="button" id="addSurveyorBtn" class="bg-green-600 text-white px-4 py-3 rounded md hover:bg-green-700 transition-colors duration-200">
-                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor/Admin
+                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor
                 </button>
                 <div class="mt-8 pt-4 border-t border-gray-200">
                     <h4 class="text-lg font-semibold mb-3 text-blue-800">Bulk Add Surveyors (CSV)</h4>
@@ -648,7 +641,7 @@
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY", // <<< REPLACE WITH YOUR ACTUAL API KEY
+            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // <<< REPLACE WITH YOUR ACTUAL API KEY
             authDomain: "beacon-35989.firebaseapp.com",
             projectId: "beacon-35989",
             storageBucket: "beacon-35989.appspot.com",
@@ -722,13 +715,13 @@
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
 
-        // Admin panel surveyor registration elements (now with specific IDs)
-        const adminNewSurveyorEmailInput = document.getElementById('adminNewSurveyorEmail');
-        const adminNewSurveyorPasswordInput = document.getElementById('adminNewSurveyorPassword');
-        const adminNewPrefixInput = document.getElementById('adminNewPrefix');
-        const adminNewNameInput = document.getElementById('adminNewName');
-        const newSurveyorRoleSelect = document.getElementById('newSurveyorRole'); // New: Role select for admin panel
-        const addSurveyorBtn = document.getElementById('addSurveyorBtn');
+        // Note: The 'Add New Surveyor' section in the main content is for admin-like bulk/manual addition.
+        // The login overlay now handles user-facing registration.
+        // const newSurveyorEmailInput = document.getElementById('newSurveyorEmail'); // No longer used for user-facing registration
+        // const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword'); // No longer used
+        // const newPrefixInput = document.getElementById('newPrefix'); // No longer used
+        // const newNameInput = document.getElementById('newName'); // No longer used
+        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Still used for admin panel
 
         const csvUploadArea = document.getElementById('csvUploadArea');
         const csvFileInput = document.getElementById('csvFileInput');
@@ -923,9 +916,10 @@
             }
         }
 
-        // Modified addSurveyor to accept a role parameter
-        async function addSurveyor(email, password, prefix, name, role = 'surveyor', uid = null) {
-            setLoading(true); // Use setLoading function
+        // This function is now used by both the login overlay's register button
+        // and the admin panel's "Add New Surveyor" button.
+        async function addSurveyor(email, password, prefix, name, uid = null) {
+            loadingOverlay.style.display = 'flex';
             try {
                 // 1. Check if a surveyor with the given prefix already exists
                 const qPrefix = query(collection(db, "surveyors"), where("prefix", "==", prefix));
@@ -950,12 +944,12 @@
                     name: name,
                     quota: beaconLimitPerSurveyor, // Initial quota
                     lastQuotaReset: new Date().toISOString(), // Track last reset
-                    role: role // Assign the specified role
+                    role: 'surveyor' // Assign default role
                 });
 
-                showNotification(`Surveyor registered successfully as ${role}!`, 'success');
+                showNotification('Surveyor registered successfully!', 'success');
                 await loadSurveyors(); // Reload surveyors into dropdown
-                addActivity(`Registered new ${role}: ${name} (${prefix}).`);
+                addActivity(`Registered new surveyor: ${name} (${prefix}).`);
                 return true;
             } catch (error) {
                 console.error("Error adding surveyor:", error);
@@ -970,7 +964,7 @@
                 showNotification(`Error registering surveyor: ${errorMessage}`, 'error');
                 return false;
             } finally {
-                setLoading(false); // Use setLoading function
+                loadingOverlay.style.display = 'none';
             }
         }
 
@@ -1072,17 +1066,24 @@
                 return;
             }
 
-            // Call addSurveyor with default 'surveyor' role
-            const success = await addSurveyor(email, password, prefix, name, 'surveyor');
-            if (success) {
-                // After successful registration, automatically logs in via onAuthStateChanged
-                // and switches to dashboard. No need to explicitly call handleLogin here.
-                showNotification('Registration successful! You are now logged in.', 'success');
-                // Clear fields after successful registration
-                loginEmailInput.value = '';
-                loginPasswordInput.value = '';
-                newSurveyorNameInput.value = '';
-                newSurveyorPrefixInput.value = '';
+            setLoading(true);
+            try {
+                // Use the existing addSurveyor function, but without UID as it's new registration
+                const success = await addSurveyor(email, password, prefix, name);
+                if (success) {
+                    // After successful registration, automatically logs in via onAuthStateChanged
+                    // and switches to dashboard. No need to explicitly call handleLogin here.
+                    showNotification('Registration successful! You are now logged in.', 'success');
+                    // Clear fields after successful registration
+                    loginEmailInput.value = '';
+                    loginPasswordInput.value = '';
+                    newSurveyorNameInput.value = '';
+                    newSurveyorPrefixInput.value = '';
+                }
+            } catch (error) {
+                // Error handled by addSurveyor function's showNotification
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -1169,7 +1170,6 @@
                     const newPrefix = await generateSurveyorPrefix(); // Generate a unique prefix
                     const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
 
-                    // For Google Sign-in, default to 'surveyor' role if no existing profile
                     await setDoc(userDocRef, {
                         email: user.email,
                         prefix: newPrefix,
@@ -1481,13 +1481,12 @@
                 }
             });
 
-            // This is the ADMIN panel's "Add New Surveyor" button, now allowing role selection
+            // This is the ADMIN panel's "Add New Surveyor" button, still separate from user registration
             addSurveyorBtn.addEventListener('click', async () => {
-                const email = adminNewSurveyorEmailInput.value.trim();
-                const password = adminNewSurveyorPasswordInput.value.trim();
-                const prefix = adminNewPrefixInput.value.trim().toUpperCase();
-                const name = adminNewNameInput.value.trim();
-                const role = newSurveyorRoleSelect.value; // Get selected role
+                const email = document.getElementById('newSurveyorEmail').value.trim();
+                const password = document.getElementById('newSurveyorPassword').value.trim();
+                const prefix = document.getElementById('newPrefix').value.trim().toUpperCase();
+                const name = document.getElementById('newName').value.trim();
 
                 if (!email || !password || !prefix || !name) {
                     showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration in admin panel.', 'error');
@@ -1502,14 +1501,12 @@
                     return;
                 }
 
-                // Call addSurveyor with the selected role
-                const success = await addSurveyor(email, password, prefix, name, role);
+                const success = await addSurveyor(email, password, prefix, name);
                 if (success) {
-                    adminNewSurveyorEmailInput.value = '';
-                    adminNewSurveyorPasswordInput.value = '';
-                    adminNewPrefixInput.value = '';
-                    adminNewNameInput.value = '';
-                    newSurveyorRoleSelect.value = 'surveyor'; // Reset role dropdown
+                    document.getElementById('newSurveyorEmail').value = '';
+                    document.getElementById('newSurveyorPassword').value = '';
+                    document.getElementById('newPrefix').value = '';
+                    document.getElementById('newName').value = '';
                 }
             });
 
@@ -1623,7 +1620,7 @@
                                 errors.push(`Row ${i + 1} (${email}): Surveyor with prefix '${prefix}' already exists. Skipping.`);
                                 continue;
                             }
-                            surveyorsToProcess.push({ email, password, prefix, name, role: 'surveyor' }); // CSV always registers as surveyor
+                            surveyorsToProcess.push({ email, password, prefix, name });
                             existingPrefixes.add(prefix); // Add to set to prevent duplicates within the CSV as well
                         } else {
                             errors.push(`Row ${i + 1}: Missing required data.`);
@@ -1645,7 +1642,7 @@
                                     name: surveyorData.name,
                                     quota: beaconLimitPerSurveyor,
                                     lastQuotaReset: new Date().toISOString(),
-                                    role: surveyorData.role // Use role from CSV data (which is 'surveyor')
+                                    role: 'surveyor'
                                 });
                                 successCount++;
                             } catch (error) {
@@ -1654,7 +1651,7 @@
                                     errMsg = 'Email already in use.';
                                 }
                                 errors.push(`Failed to register ${surveyorData.email}: ${errMsg}`);
-                                console.error(`Error registering surveyor ${surveyerData.email}:`, error);
+                                console.error(`Error registering surveyor ${surveyorData.email}:`, error);
                             }
                         }
                         setLoading(false); // Use setLoading function
