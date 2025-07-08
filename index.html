@@ -26,76 +26,89 @@
             50% { transform: scale(1.02); }
         }
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Blue-900 to Indigo-900 */
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Deep Indigo to Dark Purple */
         }
-        .unique-beacon-display {
-            background-color: #e0f2fe; /* Blue-50 */
-            border: 1px solid #90cdf4; /* Blue-200 */
-            color: #2b6cb0; /* Blue-800 */
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            transition: all 0.3s ease;
         }
-        .form-input {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-color: #fff;
-            border-color: #e2e8f0;
-            border-width: 1px;
-            border-radius: 0.375rem; /* rounded-md */
-            padding: 0.75rem 1rem; /* p-3 */
-            font-size: 1rem;
-            line-height: 1.5;
+        .sidebar.collapsed {
+            width: 80px;
+            min-width: 80px;
         }
-        .form-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* ring-2 focus:ring-blue-500 */
-            border-color: #4299e1; /* focus:border-blue-500 */
+        .sidebar.collapsed .sidebar-item-text, .sidebar.collapsed .sidebar-header h2, .sidebar.collapsed .sidebar-header .toggle-btn i {
+            display: none;
         }
-        .btn-primary {
-            background-color: #2563eb; /* Blue-700 */
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
+        .sidebar.collapsed .sidebar-header .toggle-btn i {
+            display: inline-block; /* Show icon */
+            transform: rotate(180deg);
         }
-        .btn-primary:hover {
-            background-color: #1d4ed8; /* Blue-800 */
+        .main-content {
+            margin-left: 250px;
+            transition: all 0.3s ease;
         }
-        .stats-card {
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .main-content.expanded {
+            margin-left: 80px;
         }
-        .map-container {
-            position: relative;
+        .main-content-section {
+            display: none;
+        }
+        .main-content-section.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
             width: 100%;
-            height: 400px;
-            background-color: #e0f2fe; /* Light blue background for map area */
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            border: 1px solid #bfdbfe;
         }
-        .beacon-marker {
-            position: absolute;
-            font-size: 1.5rem;
-            color: #ef4444; /* Red-500 */
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-            transition: color 0.2s;
         }
-        .beacon-marker:hover {
-            color: #dc2626; /* Red-600 */
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         .loading-overlay {
             position: fixed;
@@ -103,1566 +116,897 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-        }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #0d6efd; /* Bootstrap primary blue */
-            animation: spin 1s ease infinite;
-            margin-bottom: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #333;
+            z-index: 1002;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            z-index: 1001;
-        }
-        .notification.show {
-            opacity: 1;
-        }
-        .notification.success { background-color: #28a745; }
-        .notification.error { background-color: #dc3545; }
-        .notification.warning { background-color: #ffc107; color: #333; }
-        .notification.info { background-color: #17a2b8; }
-
-        .batch-results {
-            max-height: 250px;
-            overflow-y: auto;
-            background-color: #f9fafb;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            padding: 1rem;
-        }
-        .batch-results div {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #edf2f7;
-        }
-        .batch-results div:last-child {
-            border-bottom: none;
-        }
-
-        .generated-beacons-display-custom {
-            background-color: #e6fffa; /* Tailwind green-50 */
-            border: 1px solid #b2f5ea; /* Tailwind green-200 */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-top: 1.5rem;
-        }
-        .coordinates-display {
-            background-color: #f0f9ff; /* Tailwind blue-50 */
-            border: 1px solid #bfdbfe; /* Tailwind blue-200 */
-            padding: 1rem;
-            border-radius: 0.375rem;
-            margin-top: 1rem;
-            font-size: 0.9em;
-        }
-        .file-upload-area {
-            border: 2px dashed #cbd5e0; /* Gray-300 */
-            border-radius: 0.5rem;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        .file-upload-area:hover {
-            border-color: #93c5fd; /* Blue-300 */
-            background-color: #eff6ff; /* Blue-50 */
-        }
-
-        /* Login Overlay Styles */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Same as your nav bg */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* Higher than loading overlay */
-        }
-        .login-card {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        .login-button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2563eb; /* Blue-700 */
-            color: white;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .login-button:hover {
-            background-color: #1d4ed8; /* Blue-800 */
-        }
-        .google-sign-in-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 10px;
-            background-color: #ffffff;
-            border: 1px solid #dadce0;
-            border-radius: 6px;
-            font-weight: bold;
-            color: #3c4043;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-            margin-top: 15px; /* Added spacing */
-        }
-        .google-sign-in-button:hover {
-            background-color: #f1f3f4;
-            border-color: #c5c5c5;
-        }
-        .google-sign-in-button img {
-            margin-right: 10px;
-            height: 20px;
-        }
-        .error-message {
-            color: #dc2626; /* Red-600 */
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-        .hidden {
-            display: none;
-        }
-        /* New styles for register fields */
-        .register-fields {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-out;
-        }
-        .register-fields.show {
-            max-height: 200px; /* Adjust based on content height */
-            transition: max-height 0.5s ease-in;
+            font-size: 1.5rem;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Login Overlay -->
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-card">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800" id="authTitle">BeaconGen Login</h2>
-            <input type="email" id="loginEmailInput" class="login-input" placeholder="Enter email" autocomplete="username">
-            <input type="password" id="loginPasswordInput" class="login-input" placeholder="Enter password" autocomplete="current-password">
-
-            <!-- New fields for registration, initially hidden -->
-            <div id="registerFields" class="register-fields">
-                <input type="text" id="newSurveyorNameInput" class="login-input" placeholder="Your Full Name" autocomplete="name">
-                <input type="text" id="newSurveyorPrefixInput" class="login-input" placeholder="Your 2-letter Prefix (e.g., AB)" maxlength="2" style="text-transform: uppercase;">
-            </div>
-
-            <p id="loginErrorMessage" class="error-message hidden">Incorrect email or password.</p>
-
-            <button id="mainAuthButton" class="login-button mb-3">Login</button>
-            <button id="toggleAuthModeButton" class="w-full text-blue-600 py-2 rounded-md hover:underline text-sm">Don't have an account? <span class="font-semibold">Register here</span></button>
-
-            <div class="my-4 text-gray-400 text-center">-- OR --</div>
-
-            <button id="googleSignInButton" class="google-sign-in-button">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
-                Sign in with Google
+<body class="bg-gray-100 flex min-h-screen">
+    <aside class="sidebar bg-gray-800 text-gray-100 p-4 flex flex-col shadow-lg fixed h-full z-50">
+        <div class="sidebar-header flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-extrabold text-blue-400">BeaconGen</h2>
+            <button id="sidebarToggle" class="toggle-btn p-2 rounded-full hover:bg-gray-700 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
-    </div>
-
-    <!-- Main Content Wrapper - Initially Hidden -->
-    <div id="mainContentWrapper" class="hidden">
-        <div id="loadingOverlay" class="loading-overlay">
-            <div class="spinner"></div>
-            <p>Loading data...</p>
-        </div>
-        <div id="notificationContainer" class="notification"></div>
-        <nav class="gradient-bg text-white shadow-2xl">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                     <div class="flex items-center">
-                        <i class="fas fa-map-marker-alt text-2xl mr-3"></i>
-                        <span class="text-xl font-bold">BeaconGen 2025</span>
-                        <span class="ml-2 text-sm opacity-75">Edo State Cadastral Beacon Management</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-sm">Year: <span class="font-bold" id="yearText">2025</span></span>
-                        <span class="text-sm">Welcome, <span id="currentUserName">Guest</span></span>
-                        <button id="logoutButton" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-md transition-all duration-200">
-                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-3">
+                    <a href="#dashboard" class="sidebar-item flex items-center p-3 rounded-md hover:bg-gray-700 transition duration-200" data-target="dashboardSection">
+                        <i class="fas fa-tachometer-alt mr-3 text-blue-300"></i>
+                        <span class="sidebar-item-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="mb-3">
+                    <a href="#generate-beacon" class="sidebar-item flex items-center p-3 rounded-md hover:bg-gray-700 transition duration-200" data-target="generateBeaconSection">
+                        <i class="fas fa-map-marker-alt mr-3 text-green-300"></i>
+                        <span class="sidebar-item-text">Generate Beacon</span>
+                    </a>
+                </li>
+                <li class="mb-3">
+                    <a href="#profile" class="sidebar-item flex items-center p-3 rounded-md hover:bg-gray-700 transition duration-200" data-target="profileSection">
+                        <i class="fas fa-user-circle mr-3 text-purple-300"></i>
+                        <span class="sidebar-item-text">Profile</span>
+                    </a>
+                </li>
+                <li class="mb-3">
+                    <a href="#activities" class="sidebar-item flex items-center p-3 rounded-md hover:bg-gray-700 transition duration-200" data-target="activitiesSection">
+                        <i class="fas fa-history mr-3 text-yellow-300"></i>
+                        <span class="sidebar-item-text">Activities</span>
+                    </a>
+                </li>
+                <li class="mb-3 hidden" id="adminPanelSidebarLink">
+                    <a href="#admin-panel" class="sidebar-item flex items-center p-3 rounded-md hover:bg-gray-700 transition duration-200" data-target="adminSection">
+                        <i class="fas fa-tools mr-3 text-red-300"></i>
+                        <span class="sidebar-item-text">Admin Panel</span>
+                    </a>
+                </li>
+            </ul>
         </nav>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="mb-8 fade-in">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastral Beacon Generation System 2025</h1>
-                <p class="text-gray-600">Enhanced cadastral beacon number generation with GIS integration for land surveying - Edo State, Nigeria</p>
+        <div class="mt-auto pt-4 border-t border-gray-700">
+            <button id="logoutButton" class="w-full flex items-center justify-center p-3 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold transition duration-200">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                <span class="sidebar-item-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content flex-grow p-6 transition-all duration-300">
+        <header class="bg-white p-4 rounded-lg shadow-md mb-6 flex justify-between items-center fade-in">
+            <h1 class="text-3xl font-bold text-gray-800" id="mainTitle">Dashboard</h1>
+            <div class="flex items-center">
+                <span id="userEmailDisplay" class="text-gray-700 mr-4 font-medium"></span>
+                <i class="fas fa-bell text-gray-600 text-xl cursor-pointer hover:text-blue-600"></i>
             </div>
-            <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg card-shadow">
-                <div class="flex items-center">
-                    <i class="fas fa-refresh mr-3 text-xl"></i>
-                    <div id="systemStatusText">
-                        </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">Beacons Generated (2025)</p>
-                            <p class="text-2xl font-bold text-blue-600" id="totalBeacons">0</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-full">
-                            <i class="fas fa-map-pin text-blue-600"></i>
-                        </div>
+        </header>
+
+        <div id="notificationArea" class="fixed top-4 right-4 z-[1001] w-80"></div>
+        
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="loader"></div> Processing...
+        </div>
+
+        <section id="dashboardSection" class="main-content-section active fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between transition duration-300 transform hover:scale-105 pulse-animation">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-600">Total Beacons Generated</h3>
+                        <p id="totalBeacons" class="text-4xl font-bold text-blue-700 mt-2">0</p>
                     </div>
+                    <i class="fas fa-database text-5xl text-blue-300"></i>
                 </div>
-                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">Active Surveyors</p>
-                            <p class="text-2xl font-bold text-green-600" id="activeSurveyors">0</p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-full">
-                            <i class="fas fa-users text-green-600"></i>
-                        </div>
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between transition duration-300 transform hover:scale-105 pulse-animation">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-600">Recent Activities</h3>
+                        <p id="recentActivitiesCount" class="text-4xl font-bold text-green-700 mt-2">0</p>
                     </div>
+                    <i class="fas fa-history text-5xl text-green-300"></i>
                 </div>
-                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">Parcels Surveyed</p>
-                            <p class="text-2xl font-bold text-purple-600" id="parcelsCount">0</p>
-                        </div>
-                        <div class="bg-purple-100 p-3 rounded-full">
-                            <i class="fas fa-draw-polygon text-purple-600"></i>
-                        </div>
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between transition duration-300 transform hover:scale-105 pulse-animation">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-600">Pending Beacon Approvals</h3>
+                        <p id="pendingApprovalsCount" class="text-4xl font-bold text-yellow-700 mt-2">0</p>
                     </div>
-                </div>
-                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">GIS Coordinates</p>
-                            <p class="text-2xl font-bold text-indigo-600" id="gisPoints">0</p>
-                        </div>
-                        <div class="bg-indigo-100 p-3 rounded-full">
-                            <i class="fas fa-globe text-indigo-600"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="stats-card p-6 rounded-lg card-shadow fade-in">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">System Uptime</p>
-                            <p class="text-2xl font-bold text-orange-600">99.9%</p>
-                        </div>
-                        <div class="bg-orange-100 p-3 rounded-full">
-                            <i class="fas fa-server text-orange-600"></i>
-                        </div>
-                    </div>
+                    <i class="fas fa-hourglass-half text-5xl text-yellow-300"></i>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-lg card-shadow p-6 fade-in">
-                    <h2 class="text-xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-plus-circle text-blue-600 mr-2"></i>
-                        Generate Cadastral Beacon Numbers
-                    </h2>
-                    <div class="unique-beacon-display">
-                        <i class="fas fa-certificate mr-2"></i>
-                        Unique Beacon ID: <span id="uniqueBeaconId">SC/ED AA0000AZ</span>
-                    </div>
-                    <form id="beaconForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Surveyor Registration</label>
-                            <select id="surveyorSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Select Surveyor</option>
-                                </select>
-                            <div id="surveyorQuota" class="mt-2 text-sm text-gray-600"></div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Number of Beacons</label>
-                            <input type="number" id="beaconCount" min="1" max="50" value="4"
-                                class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Enter number of beacons">
-                            <p class="text-xs text-gray-500 mt-1">Maximum 50 beacons per parcel</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Origin Beacon Coordinates (Required)</label>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1">Latitude</label>
-                                    <input type="number" id="latitude" step="0.00001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border transparent" placeholder="6.3350" required>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1">Longitude</label>
-                                    <input type="number" id="longitude" step="0.000001" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="5.6037" required>
-                                </div>
-                            </div>
-                            <p class="text-xs text-blue-600 mt-2">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Origin coordinates will be recorded for GIS integration.
-                                Other beacon coordinates will be generated from RECCE diagram.
-                            </p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Area (Hectares)</label>
-                            <input type="number" id="parcelArea" step="0.01" min="0.01"
-                                class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="2.5">
-                            <p class="text-xs text-gray-500 mt-1">Enter the total area of the parcel in hectares</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Local Government Area</label>
-                            <select id="lgaSelect" class="form-input w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Select LGA</option>
-                                <option value="egor">Egor</option>
-                                <option value="oredo">Oredo</option>
-                                <option value="ikpoba-okha">Ikpoba-Okha</option>
-                                <option value="igueben">Igueben</option>
-                                <option value="ovia-north-east">Ovia North-East</option>
-                                <option value="uhunmwonde">Uhunmwonde</option>
-                                <option value="orhionmwon">Orhionmwon</option>
-                                <option value="ovia-south-west">Ovia South West</option>
-                                <option value="esan-central">Esan Central</option>
-                                <option value="esan-south-east">Esan-South-East</option>
-                                <option value="esan-west">Esan-West</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">RECCE Diagram Upload (Required for GIS)</label>
-                            <div class="file-upload-area" id="fileUploadArea">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-600 mb-2">Click to upload or drag and drop RECCE diagram</p>
-                                <p class="text-xs text-gray-500">Required for coordinate generation via GIS integration</p>
-                                <p class="text-xs text-gray-500">Supported formats: PDF, JPG, PNG, DWG (Max 10MB)</p>
-                                <input type="file" id="recceDiagram" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.dwg" multiple>
-                            </div>
-                            <div id="uploadedFiles" class="mt-2"></div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Description</label>
-                            <textarea id="description" rows="3" class="form-input w-full p-3 border border gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Describe the parcel location and purpose..."></textarea>
-                            <div class="flex space-x-2 mt-2">
-                                <button type="button" id="enhanceDescriptionBtn" class="bg-blue-500 text white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm">
-     ✨ Enhance Description
-                                </button>
-                                <button type="button" id="summarizeDescriptionBtn" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors duration-200 text-sm">
-     ✨ Summarize Description
-                                </button>
-                            </div>
-                            <div id="llmOutputContainer" class="mt-4 p-4 bg-gray-100 rounded-md border border-gray-200 hidden">
-                                <p class="font-semibold text-gray-700 mb-2">LLM Output:</p>
-                                <div id="llmOutputText" class="text-gray-800 whitespace-pre-wrap"></div>
-                                <div id="llmLoadingSpinner" class="hidden text-center mt-2">
-                                    <div class="spinner w-6 h-6 border-2 mx-auto"></div>
-                                    <p class="text-sm text-gray-600">Generating...</p>
-                                </div>
-                                <button type="button" id="copyLlmOutputBtn" class="mt-3 bg-green-500 text white px-3 py-1 rounded-md hover:bg-green-600 transition-colors duration-200 text-xs">
-                                    Copy to Clipboard
-                                </button>
-                                <button type="button" id="clearLlmOutputBtn" class="mt-3 ml-2 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200 text-xs">
-                                    Clear Output
-                                </button>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary w-full text-white py-3 px-6 rounded-md transition-colors duration-200 pulse-animation">
-                            <i class="fas fa-magic mr-2"></i>Generate Cadastral Beacon Numbers
-                        </button>
-                    </form>
-                    <div id="generatedBeacons" class="mt-6 hidden generated-beacons-display-custom">
-                        <h3 class="font-bold text-green-800 mb-2">Generated Cadastral Beacon Numbers:</h3>
-                        <div id="beaconsList" class="batch-results space-y-2"></div>
-                        <div class="coordinates-display">
-                            <h4 class="font-bold mb-2">GIS Coordinates Recorded:</h4>
-                            <div id="coordinatesList"></div>
-                        </div>
-                        <div class="mt-4 text-sm text-green-700">
-                            <p><strong>Format:</strong> SC/ED AA0000AZ</p>
-                            <p><strong>Unique ID:</strong> <span id="generatedUniqueId"></span></p>
-                            <p><strong>Total Generated:</strong> <span id="totalGenerated">0</span></p>
-                            <p><strong>Parcel Area:</strong> <span id="displayParcelArea">0</span> hectares</p>
-                            <p><strong>GIS Integration:</strong> <span class="text-blue-600">Coordinates recorded for mapping</span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg card-shadow p-6 fade-in">
-                    <h2 class="text-xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-search text-purple-600 mr-2"></i>
-                        Pattern Matching & Validation
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Search/Validate Beacon</label>
-                            <div class="relative">
-                                <input type="text" id="searchBeacon" class="form-input w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                    placeholder="Enter beacon number (e.g., SC/ED AA0001AZ)">
-                                <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                            </div>
-                        </div>
-                        <button id="validateBtn" class="w-full bg-purple-600 text-white py-3 px-6 rounded md hover:bg-purple-700 transition-colors duration-200">
-                            <i class="fas fa-check-circle mr-2"></i>Validate Beacon
-                        </button>
-                    </div>
-                    <div id="validationResults" class="mt-6 hidden">
-                        <h3 class="font-bold text-gray-800 mb-3">Validation Results:</h3>
-                        <div id="validationContent" class="space-y-2"></div>
-                    </div>
-                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                        <h3 class="font-bold text-blue-800 mb-2">2025 Cadastral Guidelines</h3>
-                        <div class="text-sm text-blue-700">
-                            <p><strong>New Requirements:</strong></p>
-                            <ul class="list-disc list-inside mt-1 space-y-1">
-                                <li>200 beacon limit per surveyor per <strong>quarter</strong></li>
-                                <li>Quota resets every quarter (Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec)</li>
-                                <li>Origin coordinates mandatory for GIS integration</li>
-                                <li>RECCE diagram required for coordinate generation</li>
-                                <li>All beacons must be validated through the system</li>
-                                <li>Minimum 4 beacons per parcel maintained</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-md">
-                        <h3 class="font-bold text-orange-800 mb-2">Surveyor Quotas (2025)</h3>
-                        <div class="text-sm text-orange-700">
-                            <p><strong>Allocation Status:</strong></p>
-                            <ul class="list-disc list-inside mt-1 space-y-1">
-                                <li>Each surveyor: 200 beacons/year</li>
-                                <li>Quota resets January 1st</li>
-                                <li>System tracks usage automatically</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md mt-6 fade-in">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Recent Activities</h3>
+                <ul id="activityList" class="space-y-2">
+                    </ul>
+                <p id="noActivities" class="text-gray-500 text-center mt-4 hidden">No activities yet.</p>
             </div>
-            <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
-                <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-clock text-orange-600 mr-2"></i> Recent Beacon Activities
+        </section>
+
+        <section id="generateBeaconSection" class="main-content-section fade-in">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-map-marked-alt mr-3 text-blue-600"></i>Generate Cadastral Beacon Numbers
                 </h2>
-                <div id="activityLog" class="batch-results space-y-3">
-                    <div class="activity-item flex items-center justify-between text-gray-700">
+                <form id="beaconForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <p class="font-medium">System Initialized for 2025</p>
-                            <p class="text-xs text-gray-500">All quotas reset, new beacon numbering started.</p>
+                            <label for="latitude" class="block text-sm font-medium text-gray-700">Latitude</label>
+                            <input type="text" id="latitude" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., 6.3711" required>
                         </div>
-                        <span class="text-xs text-gray-400">Jan 1, 2025</span>
+                        <div>
+                            <label for="longitude" class="block text-sm font-medium text-gray-700">Longitude</label>
+                            <input type="text" id="longitude" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., 5.6186" required>
+                        </div>
                     </div>
-                </div>
+                    <div class="mb-4">
+                        <label for="parcelId" class="block text-sm font-medium text-gray-700">Parcel ID</label>
+                        <input type="text" id="parcelId" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., ABC12345" required>
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out">
+                        Generate Beacon ID
+                    </button>
+                </form>
             </div>
-            <div class="mt-8 bg-white rounded-lg card-shadow p-6 fade-in">
-                <h2 class="text-xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management
+        </section>
+
+        <section id="profileSection" class="main-content-section fade-in">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-user-circle mr-3 text-purple-600"></i>User Profile
                 </h2>
-                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor (Admin Panel)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="space-y-4">
                     <div>
-                        <label for="newSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
-                        <input type="email" id="newSurveyorEmail" placeholder="surveyor@example.com" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                    </div>
-                    <div>
-                        <label for="newSurveyorPassword" class="block text-sm font-medium text-gray-700">Password:</label>
-                        <input type="password" id="newSurveyorPassword" placeholder="Strong password" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label class="block text-sm font-medium text-gray-700">Name:</label>
+                        <p id="profileName" class="text-lg font-semibold text-gray-900"></p>
                     </div>
                     <div>
-                        <label for="newPrefix" class="block text-sm font-medium text-gray-700">Prefix (e.g., AB):</label>
-                        <input type="text" id="newPrefix" placeholder="Enter 2-letter prefix" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label class="block text-sm font-medium text-gray-700">Email:</label>
+                        <p id="profileEmail" class="text-lg font-semibold text-gray-900"></p>
                     </div>
                     <div>
-                        <label for="newName" class="block text-sm font-medium text-gray-700">Surveyor Name:</label>
-                        <input type="text" id="newName" placeholder="Enter full name" class="form-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <label class="block text-sm font-medium text-gray-700">Role:</label>
+                        <p id="profileRole" class="text-lg font-semibold text-gray-900"></p>
                     </div>
-                </div>
-                <button type="button" id="addSurveyorBtn" class="bg-green-600 text-white px-4 py-3 rounded md hover:bg-green-700 transition-colors duration-200">
-                    <i class="fas fa-user-plus mr-1"></i> Register New Surveyor
-                </button>
-                <div class="mt-8 pt-4 border-t border-gray-200">
-                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Bulk Add Surveyors (CSV)</h4>
-                    <p class="text-sm text-gray-600 mb-4">Upload a CSV file with columns: `Email,Password,Prefix,Name`. Each row will be a new surveyor account and profile.</p>
-                    <div class="file-upload-area" id="csvUploadArea">
-                        <input type="file" id="csvFileInput" accept=".csv" class="hidden">
-                        <p class="text-gray-500"><i class="fas fa-file-csv text-2xl mb-2"></i></p>
-                        <p class="text-500 text-sm">Drag & drop your CSV here, or click to browse</p>
-                    </div>
-                    <div id="csvFileNameDisplay" class="text-sm text-gray-600 mt-2"></div>
-                    <button type="button" id="uploadCsvBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-out">
-                        Upload CSV
+                    <button id="editProfileBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out">
+                        Edit Profile
                     </button>
                 </div>
             </div>
+        </section>
+
+        <section id="activitiesSection" class="main-content-section fade-in">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-history mr-3 text-yellow-600"></i>All Activities
+                </h2>
+                <ul id="allActivityList" class="space-y-2">
+                    </ul>
+                <p id="noAllActivities" class="text-gray-500 text-center mt-4 hidden">No activities to display.</p>
+            </div>
+        </section>
+
+        <section id="adminSection" class="main-content-section fade-in">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-user-shield mr-3 text-red-600"></i>Admin Panel
+            </h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-check-circle mr-3 text-orange-600"></i>Beacon Approval Requests
+                </h3>
+                <div id="pendingBeaconsList" class="space-y-4">
+                    </div>
+                <p id="noPendingBeacons" class="text-gray-500 text-center mt-4 hidden">No pending beacon requests.</p>
+            </div>
+
+            <div id="surveyorManagement" class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-users-cog mr-3 text-blue-600"></i>Surveyor Management
+                </h3>
+                <div class="mb-6 border-b pb-4">
+                    <h4 class="text-xl font-semibold text-gray-700 mb-3">Add New Surveyor</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="surveyorName" class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" id="surveyorName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="John Doe" required>
+                        </div>
+                        <div>
+                            <label for="surveyorEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="surveyorEmail" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="john.doe@example.com" required>
+                        </div>
+                        <div>
+                            <label for="surveyorPhone" class="block text-sm font-medium text-gray-700">Phone</label>
+                            <input type="tel" id="surveyorPhone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="+2348012345678" required>
+                        </div>
+                        <div>
+                            <label for="surveyorLicense" class="block text-sm font-medium text-gray-700">License No.</label>
+                            <input type="text" id="surveyorLicense" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="SURV/LIC/2025/001" required>
+                        </div>
+                    </div>
+                    <button id="addSurveyorBtn" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out">
+                        Add Surveyor
+                    </button>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold text-gray-700 mb-3">Bulk Add Surveyors (CSV)</h4>
+                    <p class="text-sm text-gray-600 mb-2">Upload a CSV file with columns: `Name, Email, Phone, LicenseNo`</p>
+                    <div id="csvUploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition duration-300 ease-in-out">
+                        <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+                        <label for="csvFileInput" class="text-blue-600 font-semibold cursor-pointer">Drag & Drop CSV or Click to Upload</label>
+                        <p id="csvFileNameDisplay" class="text-sm text-gray-500 mt-2"></p>
+                    </div>
+                    <button id="uploadCsvBtn" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out">
+                        Process CSV
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Edit Profile</h2>
+            <form id="editProfileForm">
+                <div class="mb-4">
+                    <label for="editName" class="block text-sm font-medium text-gray-700">Name</label>
+                    <input type="text" id="editName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out">
+                    Save Changes
+                </button>
+            </form>
         </div>
-        <footer class="bg-gray-100 text-gray-600 text-center py-6 mt-12 shadow-inner">
-            <p>&copy; <span id="currentYearFooter">2025</span> BeaconGen. All rights reserved.</p>
-            <p>Developed with <span class="text-red-500">&hearts;</span> by EdoGIS Solutions. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
-        </footer>
-    </div> <!-- End of #mainContentWrapper -->
+    </div>
 
-    <script type="module">
-        // --- Firebase SDK Imports ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
-        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        // You might need getStorage for RECCE diagrams later
-        // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA", // <<< REPLACE WITH YOUR ACTUAL API KEY
-            authDomain: "beacon-35989.firebaseapp.com",
-            projectId: "beacon-35989",
-            storageBucket: "beacon-35989.appspot.com",
-            messagingSenderId: "130634267193",
-            appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
-            measurementId: "G-ZG50RM7P47"
-        };
+    <script>
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA",
+  authDomain: "beacon-35989.firebaseapp.com",
+  projectId: "beacon-35989",
+  storageBucket: "beacon-35989.firebasestorage.app",
+  messagingSenderId: "130634267193",
+  appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
+  measurementId: "G-ZG50RM7P47"
+};
 
-        // --- Initialize Firebase App and Services ---
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app); // Optional, remove if not used
-        const db = getFirestore(app);
-        const auth = getAuth(app); // Initialize Firebase Authentication
-        const googleProvider = new GoogleAuthProvider(); // Initialize Google Auth Provider
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // --- Login Elements ---
-        const loginOverlay = document.getElementById('loginOverlay');
-        const authTitle = document.getElementById('authTitle'); // New: for dynamic title
-        const loginEmailInput = document.getElementById('loginEmailInput');
-        const loginPasswordInput = document.getElementById('loginPasswordInput');
-        const registerFields = document.getElementById('registerFields'); // New: for register fields container
-        const newSurveyorNameInput = document.getElementById('newSurveyorNameInput'); // New: for register name
-        const newSurveyorPrefixInput = document.getElementById('newSurveyorPrefixInput'); // New: for register prefix
-        const mainAuthButton = document.getElementById('mainAuthButton'); // New: Main action button (Login/Register)
-        const toggleAuthModeButton = document.getElementById('toggleAuthModeButton'); // New: Toggle mode button
-        const googleSignInButton = document.getElementById('googleSignInButton');
-        const loginErrorMessage = document.getElementById('loginErrorMessage');
-        const mainContentWrapper = document.getElementById('mainContentWrapper');
-
-        // --- Global DOM Element References ---
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const notificationContainer = document.getElementById('notificationContainer');
-        const systemStatusText = document.getElementById('systemStatusText');
-        const yearText = document.getElementById('yearText');
-        const currentUserNameSpan = document.getElementById('currentUserName');
+        // DOM Elements
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarItems = document.querySelectorAll('.sidebar-item');
+        const mainTitle = document.getElementById('mainTitle');
+        const mainContentSections = document.querySelectorAll('.main-content-section');
         const logoutButton = document.getElementById('logoutButton');
-        const totalBeaconsSpan = document.getElementById('totalBeacons');
-        const activeSurveyorsSpan = document.getElementById('activeSurveyors');
-        const parcelsCountSpan = document.getElementById('parcelsCount');
-        const gisPointsSpan = document.getElementById('gisPoints');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const adminPanelSidebarLink = document.getElementById('adminPanelSidebarLink');
 
-        const uniqueBeaconIdSpan = document.getElementById('uniqueBeaconId');
+        // Notification Elements
+        const notificationArea = document.getElementById('notificationArea');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // Dashboard Elements
+        const totalBeacons = document.getElementById('totalBeacons');
+        const recentActivitiesCount = document.getElementById('recentActivitiesCount');
+        const pendingApprovalsCount = document.getElementById('pendingApprovalsCount');
+        const activityList = document.getElementById('activityList');
+        const noActivities = document.getElementById('noActivities');
+
+        // Generate Beacon Elements
         const beaconForm = document.getElementById('beaconForm');
-        const surveyorSelect = document.getElementById('surveyorSelect');
-        const surveyorQuotaDiv = document.getElementById('surveyorQuota');
-        const beaconCountInput = document.getElementById('beaconCount');
         const latitudeInput = document.getElementById('latitude');
         const longitudeInput = document.getElementById('longitude');
-        const parcelAreaInput = document.getElementById('parcelArea');
-        const lgaSelect = document.getElementById('lgaSelect');
-        const fileUploadArea = document.getElementById('fileUploadArea');
-        const recceDiagramInput = document.getElementById('recceDiagram');
-        const uploadedFilesDiv = document.getElementById('uploadedFiles');
-        const descriptionTextarea = document.getElementById('description');
-        const enhanceDescriptionBtn = document.getElementById('enhanceDescriptionBtn');
-        const summarizeDescriptionBtn = document.getElementById('summarizeDescriptionBtn');
-        const llmOutputContainer = document.getElementById('llmOutputContainer');
-        const llmOutputText = document.getElementById('llmOutputText');
-        const llmLoadingSpinner = document.getElementById('llmLoadingSpinner');
-        const copyLlmOutputBtn = document.getElementById('copyLlmOutputBtn');
-        const clearLlmOutputBtn = document.getElementById('clearLlmOutputBtn');
-        const generatedBeaconsDiv = document.getElementById('generatedBeacons');
-        const beaconsListDiv = document.getElementById('beaconsList');
-        const coordinatesListDiv = document.getElementById('coordinatesList');
-        const generatedUniqueIdSpan = document.getElementById('generatedUniqueId');
-        const totalGeneratedSpan = document.getElementById('totalGenerated');
-        const displayParcelAreaSpan = document.getElementById('displayParcelArea');
-        const searchBeaconInput = document.getElementById('searchBeacon');
-        const validateBtn = document.getElementById('validateBtn');
-        const validationResultsDiv = document.getElementById('validationResults');
-        const validationContentDiv = document.getElementById('validationContent');
-        const activityLogDiv = document.getElementById('activityLog');
+        const parcelIdInput = document.getElementById('parcelId');
 
-        // Note: The 'Add New Surveyor' section in the main content is for admin-like bulk/manual addition.
-        // The login overlay now handles user-facing registration.
-        // const newSurveyorEmailInput = document.getElementById('newSurveyorEmail'); // No longer used for user-facing registration
-        // const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword'); // No longer used
-        // const newPrefixInput = document.getElementById('newPrefix'); // No longer used
-        // const newNameInput = document.getElementById('newName'); // No longer used
-        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Still used for admin panel
+        // Profile Elements
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const profileRole = document.getElementById('profileRole');
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const editProfileModal = document.getElementById('editProfileModal');
+        const closeProfileModalBtn = editProfileModal.querySelector('.close-button');
+        const editProfileForm = document.getElementById('editProfileForm');
+        const editNameInput = document.getElementById('editName');
 
-        const csvUploadArea = document.getElementById('csvUploadArea');
+        // Activities Elements
+        const allActivityList = document.getElementById('allActivityList');
+        const noAllActivities = document.getElementById('noAllActivities');
+
+        // Admin Section Elements
+        const pendingBeaconsList = document.getElementById('pendingBeaconsList');
+        const noPendingBeacons = document.getElementById('noPendingBeacons');
+
+        // Surveyor Management Elements (re-integrated)
+        const surveyorNameInput = document.getElementById('surveyorName');
+        const surveyorEmailInput = document.getElementById('surveyorEmail');
+        const surveyorPhoneInput = document.getElementById('surveyorPhone');
+        const surveyorLicenseInput = document.getElementById('surveyorLicense');
+        const addSurveyorBtn = document.getElementById('addSurveyorBtn');
         const csvFileInput = document.getElementById('csvFileInput');
         const csvFileNameDisplay = document.getElementById('csvFileNameDisplay');
         const uploadCsvBtn = document.getElementById('uploadCsvBtn');
-        const currentYearFooterSpan = document.getElementById('currentYearFooter');
+        const csvUploadArea = document.getElementById('csvUploadArea');
 
-        // --- Global Application State Variables ---
-        let lastBeaconSerialNum = 'AA0000AZ'; // Example initial value
-        let surveyors = [];
-        let currentUserData = null; // Will store current logged-in user's Firestore data
-        const beaconLimitPerSurveyor = 200; // Per quarter
-        const currentYear = new Date().getFullYear();
-        let currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1; // 1-4
-        let userBeaconCountInQuarter = 0; // This will be dynamic based on logged-in surveyor
-        const ADMIN_PAGE_URL = 'confirmation.html'; // Path to your admin confirmation page
-        let isRegisterMode = false; // New state for login/register toggle
+        // Constants
+        const ADMIN_ROLES = ['admin']; // Define what roles are considered admin
 
-        // --- Helper Functions ---
-        async function testFirestoreConnection() {
-            try {
-                const docRef = doc(db, "testCollection", "testDoc");
-                const docSnap = await getDoc(docRef);
-                if (systemStatusText) {
-                    if (docSnap.exists()) {
-                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
-                    } else {
-                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
-                    }
-                }
-            } catch (error) {
-                console.error("Error during Firebase initialization or data fetch:", error);
-                if (systemStatusText) {
-                    systemStatusText.innerHTML = `<span class="text-white font-semibold">System Status: <span class="text-red-200">Connection Error!</span></span><p class="text-xs text-red-200">${error.message}</p>`;
-                }
-            } finally {
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none';
-                }
+        // --- Utility Functions ---
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `p-3 mb-3 rounded-md shadow-md text-white fade-in`;
+            if (type === 'success') {
+                notification.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500');
+            } else if (type === 'warning') {
+                notification.classList.add('bg-yellow-500');
+            } else {
+                notification.classList.add('bg-blue-500');
             }
-        }
+            notification.textContent = message;
+            notificationArea.prepend(notification); // Add to top
 
-        function showNotification(message, type) {
-            notificationContainer.textContent = message;
-            notificationContainer.className = `notification show ${type}`;
             setTimeout(() => {
-                notificationContainer.classList.remove('show');
-            }, 3000);
+                notification.classList.remove('fade-in');
+                notification.style.transition = 'opacity 0.5s ease-out';
+                notification.style.opacity = '0';
+                notification.addEventListener('transitionend', () => notification.remove());
+            }, 5000); // Notification disappears after 5 seconds
         }
 
-        function addActivity(message) {
-            const now = new Date();
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            const timestamp = now.toLocaleDateString('en-US', options);
-            const activityItem = document.createElement('div');
-            activityItem.className = 'activity-item flex items-center justify-between text-gray-700';
-            activityItem.innerHTML = `
-                <div>
-                    <p class="font-medium">${message}</p>
-                    <p class="text-xs text-gray-500">${timestamp}</p>
-                </div>
-            `;
-            activityLogDiv.prepend(activityItem); // Add to the top
+        function generateUniqueBeaconId(lat, lng, parcel) {
+            const timestamp = Date.now();
+            const latPart = Math.abs(parseFloat(lat)).toFixed(4).replace('.', '');
+            const lngPart = Math.abs(parseFloat(lng)).toFixed(4).replace('.', '');
+            const parcelPart = parcel.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 5); // Max 5 alphanumeric
+            return `BCN-${timestamp.toString().slice(-6)}-${latPart.slice(0, 4)}${lngPart.slice(0, 4)}-${parcelPart}`;
         }
 
-        function generateNextBeaconSerial(lastSerial) {
-            let prefix = lastSerial.substring(0, 2);
-            let number = parseInt(lastSerial.substring(2, 6));
-            let suffix = lastSerial.substring(6, 8);
+        async function addActivity(description) {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    console.warn("No user logged in, cannot add activity.");
+                    return;
+                }
+                await db.collection("activities").add({
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    description: description,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Activity added successfully.");
+                // Reload dashboard activities if currently on dashboard
+                if (document.getElementById('dashboardSection').classList.contains('active')) {
+                    loadRecentActivities();
+                }
+                // Reload all activities if currently on activities page
+                if (document.getElementById('activitiesSection').classList.contains('active')) {
+                    loadAllActivities();
+                }
+            } catch (error) {
+                console.error("Error adding activity: ", error);
+            }
+        }
 
-            number++; // Increment the number part
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loadingOverlay.classList.remove('hidden');
+            } else {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
 
-            if (number > 9999) {
-                number = 0;
-                let suffixChar1 = suffix.charCodeAt(0);
-                let suffixChar2 = suffix.charCodeAt(1);
+        // --- UI Interactions ---
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
 
-                suffixChar2++;
-                if (suffixChar2 > 'Z'.charCodeAt(0)) {
-                    suffixChar2 = 'A'.charCodeAt(0);
-                    suffixChar1++;
-                    if (suffixChar1 > 'Z'.charCodeAt(0)) {
-                        suffixChar1 = 'A'.charCodeAt(0);
-                        showNotification('Beacon serial numbers are nearing exhaustion for this prefix. Consider new prefixes.', 'warning');
+        sidebarItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = item.dataset.target;
+
+                sidebarItems.forEach(link => link.classList.remove('bg-gray-700', 'text-white'));
+                item.classList.add('bg-gray-700', 'text-white');
+
+                mainContentSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    mainTitle.textContent = item.textContent.trim(); // Update main title
+
+                    // Load content specific to the active section
+                    if (targetId === 'dashboardSection') {
+                        loadDashboardStats();
+                        loadRecentActivities();
+                    } else if (targetId === 'activitiesSection') {
+                        loadAllActivities();
+                    } else if (targetId === 'profileSection') {
+                        if (auth.currentUser) {
+                            loadUserProfile(auth.currentUser.uid);
+                        }
+                    } else if (targetId === 'adminSection') {
+                        loadPendingBeaconsForApproval();
+                        loadSurveyors(); // Load surveyors for dropdowns if needed elsewhere
                     }
                 }
-                suffix = String.fromCharCode(suffixChar1) + String.fromCharCode(suffixChar2);
+            });
+        });
+
+        // Set initial active section (Dashboard)
+        document.addEventListener('DOMContentLoaded', () => {
+            const dashboardLink = document.querySelector('[data-target="dashboardSection"]');
+            if (dashboardLink) {
+                dashboardLink.click(); // Simulate click to activate dashboard
             }
-            return prefix + String(number).padStart(4, '0') + suffix;
-        }
+        });
 
-        async function generateSurveyorPrefix() {
-            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let prefix;
-            let isUnique = false;
-            let attempts = 0;
-            const maxAttempts = 1000;
-            while (!isUnique && attempts < maxAttempts) {
-                const char1 = alphabet[Math.floor(Math.random() * alphabet.length)];
-                const char2 = alphabet[Math.floor(Math.random() * alphabet.length)];
-                prefix = char1 + char2;
-                const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
-                const querySnapshot = await getDocs(q);
-                if (querySnapshot.empty) {
-                    isUnique = true;
-                }
-                attempts++;
-            }
-            if (!isUnique) {
-                throw new Error("Could not generate a unique surveyor prefix after multiple attempts.");
-            }
-            return prefix;
-        }
+        // --- Authentication & Data Loading ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                userEmailDisplay.textContent = user.email;
+                await loadUserProfile(user.uid);
+                await loadDashboardStats();
+                await loadRecentActivities();
 
-        async function calculateUsageForSurveyor(surveyorId) {
-            const currentYear = new Date().getFullYear();
-            const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1; // 1-4
-
-            // Define quarter start and end dates for the current year and quarter
-            let startDate, endDate;
-            if (currentQuarter === 1) {
-                startDate = new Date(currentYear, 0, 1); // Jan 1
-                endDate = new Date(currentYear, 3, 0);   // Mar 31
-            } else if (currentQuarter === 2) {
-                startDate = new Date(currentYear, 3, 1); // Apr 1
-                endDate = new Date(currentYear, 6, 0);   // Jun 30
-            } else if (currentQuarter === 3) {
-                startDate = new Date(currentYear, 6, 1); // Jul 1
-                endDate = new Date(currentYear, 9, 0);   // Sep 30
-            } else { // Quarter 4
-                startDate = new Date(currentYear, 9, 1); // Oct 1
-                endDate = new Date(currentYear, 12, 0);  // Dec 31
-            }
-
-
-            const q = query(
-                collection(db, "beacons"),
-                where("surveyorId", "==", surveyorId),
-                where("generatedAt", ">=", startDate.toISOString()),
-                where("generatedAt", "<=", endDate.toISOString())
-            );
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.size;
-        }
-
-
-        async function updateSurveyorQuotaDisplay(surveyorId) {
-            const surveyor = surveyors.find(s => s.id === surveyorId);
-            if (surveyor) {
-                userBeaconCountInQuarter = await calculateUsageForSurveyor(surveyor.id);
-                surveyorQuotaDiv.textContent = `Beacons used this quarter: ${userBeaconCountInQuarter}/${beaconLimitPerSurveyor}`;
-                surveyorQuotaDiv.className = `mt-2 text-sm ${userBeaconCountInQuarter >= beaconLimitPerSurveyor ? 'text-red-600 font-bold' : 'text-gray-600'}`;
-                if (userBeaconCountInQuarter >= beaconLimitPerSurveyor) {
-                    showNotification('Surveyor has reached their beacon generation quota for this quarter!', 'warning');
+                // Check if user is admin and show admin link
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (userDoc.exists && ADMIN_ROLES.includes(userDoc.data().role)) {
+                    adminPanelSidebarLink.classList.remove('hidden');
+                } else {
+                    adminPanelSidebarLink.classList.add('hidden');
                 }
             } else {
-                surveyorQuotaDiv.textContent = 'Select a surveyor to see quota.';
-                surveyorQuotaDiv.className = 'mt-2 text-sm text-gray-600';
-            }
-        }
-
-        async function loadSurveyors() {
-            try {
-                surveyorSelect.innerHTML = '<option value="">Select Surveyor</option>'; // Clear existing options
-                surveyors = []; // Clear global surveyors array
-                const querySnapshot = await getDocs(collection(db, "surveyors"));
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    surveyors.push({ id: doc.id, ...data });
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = `${data.prefix} - ${data.name}`;
-                    surveyorSelect.appendChild(option);
-                });
-                // If a user is logged in, select their surveyor profile
-                if (auth.currentUser && currentUserData) {
-                    surveyorSelect.value = auth.currentUser.uid;
-                    updateSurveyorQuotaDisplay(auth.currentUser.uid);
-                    surveyorSelect.disabled = true; // Prevent changing surveyor if logged in as one
-                } else if (surveyors.length > 0) {
-                    // For non-logged-in state, or if current user is admin, allow selection
-                    surveyorSelect.value = surveyors[0].id; // Select the first surveyor by default
-                    updateSurveyorQuotaDisplay(surveyors[0].id);
-                    surveyorSelect.disabled = false;
-                } else {
-                    surveyorSelect.disabled = false;
-                }
-                activeSurveyorsSpan.textContent = surveyors.length;
-            } catch (error) {
-                console.error("Error loading surveyors:", error);
-                showNotification('Error loading surveyors.', 'error');
-            }
-        }
-
-        // This function is now used by both the login overlay's register button
-        // and the admin panel's "Add New Surveyor" button.
-        async function addSurveyor(email, password, prefix, name, uid = null) {
-            loadingOverlay.style.display = 'flex';
-            try {
-                // 1. Check if a surveyor with the given prefix already exists
-                const qPrefix = query(collection(db, "surveyors"), where("prefix", "==", prefix));
-                const querySnapshotPrefix = await getDocs(qPrefix);
-                if (!querySnapshotPrefix.empty) {
-                    throw new Error(`Surveyor with prefix '${prefix}' already exists.`);
-                }
-
-                let user;
-                if (uid) { // If UID is provided (e.g., from Google Sign-in for a new user)
-                    user = auth.currentUser; // Use the currently authenticated user
-                } else { // For email/password registration
-                    // 2. Create user in Firebase Authentication
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    user = userCredential.user;
-                }
-
-                // 3. Store surveyor profile in Firestore using Auth UID as document ID
-                await setDoc(doc(db, "surveyors", user.uid), {
-                    email: email,
-                    prefix: prefix,
-                    name: name,
-                    quota: beaconLimitPerSurveyor, // Initial quota
-                    lastQuotaReset: new Date().toISOString(), // Track last reset
-                    role: 'surveyor' // Assign default role
-                });
-
-                showNotification('Surveyor registered successfully!', 'success');
-                await loadSurveyors(); // Reload surveyors into dropdown
-                addActivity(`Registered new surveyor: ${name} (${prefix}).`);
-                return true;
-            } catch (error) {
-                console.error("Error adding surveyor:", error);
-                let errorMessage = error.message;
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'The email address is already in use by another account.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'The email address is not valid.';
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = 'The password is too weak. It must be at least 6 characters long.';
-                }
-                showNotification(`Error registering surveyor: ${errorMessage}`, 'error');
-                return false;
-            } finally {
-                loadingOverlay.style.display = 'none';
-            }
-        }
-
-        function calculateChecksum(text) {
-            let sum = 0;
-            for (let i = 0; i < text.length; i++) {
-                sum += text.charCodeAt(i);
-            }
-            return sum % 97; // A common checksum modulo value
-        }
-
-        function showBeaconInfo(id, lat, long) {
-            // Replaced alert with a notification or custom modal if needed
-            showNotification(`Beacon ID: ${id} | Lat: ${lat}, Long: ${long}`, 'info');
-        }
-
-        async function callGeminiAPI(prompt) {
-            llmOutputContainer.classList.remove('hidden');
-            llmLoadingSpinner.classList.remove('hidden');
-            llmOutputText.innerText = '';
-            try {
-                // You will need to set up a backend endpoint (e.g., Firebase Cloud Function)
-                // to securely call the Gemini API, as direct client-side calls are not recommended
-                // due to API key exposure.
-                // Placeholder for Gemini API call
-                const mockResponse = {
-                    generatedText: `This is a summarized/enhanced description based on: "${prompt}". The AI model would provide a more sophisticated output here.`
-                };
-                // Simulate network delay
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                llmOutputText.innerText = mockResponse.generatedText;
-                showNotification('LLM response generated!', 'success');
-            } catch (error) {
-                console.error('Error calling Gemini API:', error);
-                llmOutputText.innerText = 'Error generating response. Please try again.';
-                showNotification('Error calling AI service.', 'error');
-            } finally {
-                llmLoadingSpinner.classList.add('hidden');
-            }
-        }
-
-        // --- AUTHENTICATION LOGIC (Updated for toggle) ---
-
-        // Function to update the UI based on isRegisterMode
-        function updateAuthModeUI() {
-            loginErrorMessage.classList.add('hidden'); // Clear error on mode switch
-            loginEmailInput.value = ''; // Clear inputs
-            loginPasswordInput.value = '';
-            newSurveyorNameInput.value = '';
-            newSurveyorPrefixInput.value = '';
-
-            if (isRegisterMode) {
-                authTitle.textContent = 'BeaconGen Register';
-                mainAuthButton.textContent = 'Register';
-                mainAuthButton.onclick = handleUserRegister; // New handler for user register
-                toggleAuthModeButton.innerHTML = 'Already have an account? <span class="font-semibold">Login here</span>';
-                registerFields.classList.add('show');
-            } else {
-                authTitle.textContent = 'BeaconGen Login';
-                mainAuthButton.textContent = 'Login';
-                mainAuthButton.onclick = handleUserLogin; // New handler for user login
-                toggleAuthModeButton.innerHTML = 'Don\'t have an account? <span class="font-semibold">Register here</span>';
-                registerFields.classList.remove('show');
-            }
-        }
-
-        // Event listeners for login/register toggle
-        toggleAuthModeButton.addEventListener('click', () => {
-            isRegisterMode = !isRegisterMode;
-            updateAuthModeUI();
-        });
-
-        // Initial setup of the UI mode
-        updateAuthModeUI();
-
-
-        // New handler for user-facing registration
-        async function handleUserRegister() {
-            const email = loginEmailInput.value.trim();
-            const password = loginPasswordInput.value.trim();
-            const name = newSurveyorNameInput.value.trim();
-            const prefix = newSurveyorPrefixInput.value.trim().toUpperCase();
-
-            loginErrorMessage.classList.add('hidden');
-            if (!email || !password || !name || !prefix) {
-                loginErrorMessage.textContent = 'All fields are required for registration.';
-                loginErrorMessage.classList.remove('hidden');
-                return;
-            }
-            if (password.length < 6) {
-                loginErrorMessage.textContent = 'Password must be at least 6 characters long.';
-                loginErrorMessage.classList.remove('hidden');
-                return;
-            }
-            if (!/^[A-Z]{2}$/.test(prefix)) {
-                loginErrorMessage.textContent = 'Prefix must be 2 uppercase letters (e.g., AB).';
-                loginErrorMessage.classList.remove('hidden');
-                return;
-            }
-
-            setLoading(true);
-            try {
-                // Use the existing addSurveyor function, but without UID as it's new registration
-                const success = await addSurveyor(email, password, prefix, name);
-                if (success) {
-                    // After successful registration, automatically logs in via onAuthStateChanged
-                    // and switches to dashboard. No need to explicitly call handleLogin here.
-                    showNotification('Registration successful! You are now logged in.', 'success');
-                    // Clear fields after successful registration
-                    loginEmailInput.value = '';
-                    loginPasswordInput.value = '';
-                    newSurveyorNameInput.value = '';
-                    newSurveyorPrefixInput.value = '';
-                }
-            } catch (error) {
-                // Error handled by addSurveyor function's showNotification
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        // New handler for user-facing login
-        async function handleUserLogin() {
-            const email = loginEmailInput.value;
-            const password = loginPasswordInput.value;
-            loginErrorMessage.classList.add('hidden');
-            setLoading(true);
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                await processLoginSuccess(userCredential.user); // Re-use existing success logic
-
-            } catch (error) {
-                console.error("Error during email/password login:", error);
-                let errorMessage = error.message;
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = 'Invalid email or password.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email format.';
-                }
-                loginErrorMessage.textContent = errorMessage;
-                loginErrorMessage.classList.remove('hidden');
-                showNotification(`Login failed: ${errorMessage}`, 'error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-
-        // Event listeners for input fields (Enter key)
-        loginEmailInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                loginPasswordInput.focus();
-            }
-        });
-        loginPasswordInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                if (isRegisterMode) {
-                    newSurveyorNameInput.focus();
-                } else {
-                    mainAuthButton.click(); // Trigger login
-                }
-            }
-        });
-        newSurveyorNameInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                newSurveyorPrefixInput.focus();
-            }
-        });
-        newSurveyorPrefixInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                mainAuthButton.click(); // Trigger register
+                // No user is signed in. Redirect to login page.
+                window.location.href = 'login.html'; // Assuming you have a login.html
             }
         });
 
-        googleSignInButton.addEventListener('click', handleGoogleLogin);
-        logoutButton.addEventListener('click', handleLogout);
-
-        async function processLoginSuccess(user) {
-            // Fetch user's role from Firestore
-            const userDocRef = doc(db, "surveyors", user.uid);
-            const userDoc = await getDoc(userDocRef);
-
-            if (userDoc.exists()) {
-                currentUserData = userDoc.data();
-                currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
-                showNotification(`Logged in as ${currentUserData.name || user.email}!`, 'success');
-
-                if (currentUserData.role === 'admin') {
-                    window.location.href = ADMIN_PAGE_URL; // Redirect to admin page
-                } else {
-                    loginOverlay.classList.add('hidden');
-                    mainContentWrapper.classList.remove('hidden');
-                    initApplication(); // Initialize main app content
-                }
-            } else {
-                // User exists in Auth but not in surveyors collection
-                // This scenario could happen if they sign in with Google for the first time
-                // or if their Firestore profile was deleted.
-                console.log("User profile not found in Firestore. Creating new surveyor profile.");
-                try {
-                    const newPrefix = await generateSurveyorPrefix(); // Generate a unique prefix
-                    const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
-
-                    await setDoc(userDocRef, {
-                        email: user.email,
-                        prefix: newPrefix,
-                        name: surveyorName,
-                        quota: beaconLimitPerSurveyor,
-                        lastQuotaReset: new Date().toISOString(),
-                        role: 'surveyor' // Assign default role for new Google users
-                    });
-                    currentUserData = (await getDoc(userDocRef)).data(); // Get the newly created data
-
-                    showNotification(`Welcome, new surveyor ${surveyorName}! Your profile has been created.`, 'success');
-                    addActivity(`New surveyor registered via Google: ${surveyorName} (${newPrefix}).`);
-
-                    // Proceed to main app
-                    loginOverlay.classList.add('hidden');
-                    mainContentWrapper.classList.remove('hidden');
-                    initApplication();
-                    currentUserNameSpan.textContent = currentUserData.name || user.email;
-
-                } catch (profileError) {
-                    console.error("Error creating new surveyor profile for Google user:", profileError);
-                    await signOut(auth); // Log them out if profile creation fails
-                    showNotification(`Failed to create surveyor profile: ${profileError.message}`, 'error');
-                    loginOverlay.classList.remove('hidden');
-                    mainContentWrapper.classList.add('hidden');
-                }
-            }
-        }
-
-        async function handleGoogleLogin() {
-            loginErrorMessage.classList.add('hidden');
-            setLoading(true);
-
+        logoutButton.addEventListener('click', async () => {
             try {
-                const result = await signInWithPopup(auth, googleProvider);
-                // The signed-in user info.
-                const user = result.user;
-                await processLoginSuccess(user); // Use the same success processing as email/password login
-
+                await auth.signOut();
+                showNotification('Logged out successfully!', 'success');
+                // Redirect to login page
+                window.location.href = 'login.html';
             } catch (error) {
-                console.error("Error during Google login:", error);
-                let errorMessage = error.message;
-                if (error.code === 'auth/popup-closed-by-user') {
-                    errorMessage = 'Google sign-in window was closed.';
-                } else if (error.code === 'auth/cancelled-popup-request') {
-                    errorMessage = 'Another sign-in popup was already open.';
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                    errorMessage = 'An account with the same email already exists but with different login credentials. Try logging in with Email/Password.';
-                }
-                loginErrorMessage.textContent = `Google Sign-in failed: ${errorMessage}`;
-                loginErrorMessage.classList.remove('hidden');
-                showNotification(`Google Sign-in failed: ${errorMessage}`, 'error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-                showNotification('Logged out successfully!', 'info');
-                // Reset UI to login state
-                loginOverlay.classList.remove('hidden');
-                mainContentWrapper.classList.add('hidden');
-                currentUserNameSpan.textContent = 'Guest';
-                // Clear login form fields
-                loginEmailInput.value = '';
-                loginPasswordInput.value = '';
-                newSurveyorNameInput.value = '';
-                newSurveyorPrefixInput.value = '';
-                loginErrorMessage.classList.add('hidden');
-                isRegisterMode = false; // Reset to login mode
-                updateAuthModeUI(); // Update UI
-                // No location.reload() needed as onAuthStateChanged will handle re-render
-            } catch (error) {
-                console.error("Error during logout:", error);
+                console.error("Error logging out: ", error);
                 showNotification(`Logout failed: ${error.message}`, 'error');
             }
+        });
+
+        async function loadUserProfile(uid) {
+            try {
+                const userDoc = await db.collection("users").doc(uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    profileName.textContent = userData.name || 'N/A';
+                    profileEmail.textContent = userData.email || 'N/A';
+                    profileRole.textContent = userData.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : 'User';
+
+                    // Populate edit profile modal
+                    editNameInput.value = userData.name || '';
+                } else {
+                    console.log("No such user document!");
+                    profileName.textContent = 'N/A';
+                    profileEmail.textContent = auth.currentUser.email;
+                    profileRole.textContent = 'User';
+                }
+            } catch (error) {
+                console.error("Error loading user profile: ", error);
+                showNotification(`Error loading profile: ${error.message}`, 'error');
+            }
         }
 
-        // Listen for authentication state changes (useful for auto-login/re-auth)
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // User is signed in.
-                setLoading(true); // Indicate loading while checking profile
+        async function loadDashboardStats() {
+            try {
+                const beaconsSnapshot = await db.collection("beacons").get();
+                totalBeacons.textContent = beaconsSnapshot.size;
+
+                const pendingBeaconsSnapshot = await db.collection("beacons").where("status", "==", "pending").get();
+                pendingApprovalsCount.textContent = pendingBeaconsSnapshot.size;
+
+            } catch (error) {
+                console.error("Error loading dashboard stats: ", error);
+                showNotification(`Error loading dashboard stats: ${e.message}`, 'error');
+            }
+        }
+
+        async function loadRecentActivities() {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    activityList.innerHTML = '';
+                    noActivities.classList.remove('hidden');
+                    recentActivitiesCount.textContent = '0';
+                    return;
+                }
+
+                const activitiesSnapshot = await db.collection("activities")
+                    .where("userId", "==", currentUser.uid)
+                    .orderBy("timestamp", "desc")
+                    .limit(5)
+                    .get();
+
+                activityList.innerHTML = '';
+                if (activitiesSnapshot.empty) {
+                    noActivities.classList.remove('hidden');
+                } else {
+                    noActivities.classList.add('hidden');
+                    activitiesSnapshot.forEach(doc => {
+                        const activity = doc.data();
+                        const li = document.createElement('li');
+                        li.className = 'bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200';
+                        const date = activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleString() : 'N/A';
+                        li.innerHTML = `<p class="text-gray-800 font-medium">${activity.description}</p><span class="text-xs text-gray-500">${date}</span>`;
+                        activityList.appendChild(li);
+                    });
+                }
+                recentActivitiesCount.textContent = activitiesSnapshot.size;
+            } catch (error) {
+                console.error("Error loading recent activities: ", error);
+                showNotification(`Error loading recent activities: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadAllActivities() {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    allActivityList.innerHTML = '';
+                    noAllActivities.classList.remove('hidden');
+                    return;
+                }
+
+                const activitiesSnapshot = await db.collection("activities")
+                    .where("userId", "==", currentUser.uid)
+                    .orderBy("timestamp", "desc")
+                    .get();
+
+                allActivityList.innerHTML = '';
+                if (activitiesSnapshot.empty) {
+                    noAllActivities.classList.remove('hidden');
+                } else {
+                    noAllActivities.classList.add('hidden');
+                    activitiesSnapshot.forEach(doc => {
+                        const activity = doc.data();
+                        const li = document.createElement('li');
+                        li.className = 'bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200';
+                        const date = activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleString() : 'N/A';
+                        li.innerHTML = `<p class="text-gray-800 font-medium">${activity.description}</p><span class="text-xs text-gray-500">${date}</span>`;
+                        allActivityList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading all activities: ", error);
+                showNotification(`Error loading all activities: ${error.message}`, 'error');
+            }
+        }
+
+        // --- Generate Beacon Logic ---
+        beaconForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const lat = latitudeInput.value.trim();
+            const lng = longitudeInput.value.trim();
+            const parcelId = parcelIdInput.value.trim();
+
+            if (!lat || !lng || !parcelId) {
+                showNotification('Please fill in all fields (Latitude, Longitude, Parcel ID).', 'warning');
+                return;
+            }
+
+            if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+                showNotification('Latitude and Longitude must be valid numbers.', 'error');
+                return;
+            }
+
+            const uniqueBeaconId = generateUniqueBeaconId(lat, lng, parcelId);
+            const currentUser = auth.currentUser;
+            const currentUserEmail = currentUser ? currentUser.email : 'anonymous';
+
+            try {
+                await db.collection("beacons").add({
+                    uniqueBeaconId,
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng),
+                    parcelId,
+                    dateGenerated: new Date(),
+                    status: 'pending', // Added for approval workflow
+                    requestedBy: currentUserEmail, // Added for approval workflow
+                    generatedByUid: currentUser ? currentUser.uid : null,
+                });
+                showNotification(`Beacon ID ${uniqueBeaconId} generated and submitted for approval!`, 'success');
+                addActivity(`Submitted new beacon ID: ${uniqueBeaconId} for approval.`);
+                beaconForm.reset();
+                loadDashboardStats(); // Update dashboard stats after submission
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showNotification(`Error submitting beacon: ${e.message}`, 'error');
+            }
+        });
+
+        // --- Profile Edit Modal Logic ---
+        editProfileBtn.addEventListener('click', () => {
+            editProfileModal.style.display = 'flex'; // Show modal
+        });
+
+        closeProfileModalBtn.addEventListener('click', () => {
+            editProfileModal.style.display = 'none'; // Hide modal
+        });
+
+        // Close modal if clicked outside content
+        window.addEventListener('click', (event) => {
+            if (event.target == editProfileModal) {
+                editProfileModal.style.display = 'none';
+            }
+        });
+
+        editProfileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newName = editNameInput.value.trim();
+            const currentUser = auth.currentUser;
+
+            if (!currentUser) {
+                showNotification("No user logged in to update profile.", 'error');
+                return;
+            }
+
+            if (!newName) {
+                showNotification("Name cannot be empty.", 'warning');
+                return;
+            }
+
+            try {
+                await db.collection("users").doc(currentUser.uid).update({
+                    name: newName
+                });
+                showNotification("Profile updated successfully!", 'success');
+                profileName.textContent = newName; // Update UI
+                addActivity("Updated profile name.");
+                editProfileModal.style.display = 'none'; // Hide modal
+            } catch (error) {
+                console.error("Error updating profile: ", error);
+                showNotification(`Error updating profile: ${error.message}`, 'error');
+            }
+        });
+
+        // --- Admin Section Logic (Re-integrated) ---
+
+        // Beacon Approval Logic
+        async function loadPendingBeaconsForApproval() {
+            try {
+                const beaconsSnapshot = await db.collection("beacons")
+                    .where("status", "==", "pending")
+                    .orderBy("dateGenerated", "desc")
+                    .get();
+
+                pendingBeaconsList.innerHTML = '';
+                if (beaconsSnapshot.empty) {
+                    noPendingBeacons.classList.remove('hidden');
+                } else {
+                    noPendingBeacons.classList.add('hidden');
+                    beaconsSnapshot.forEach(doc => {
+                        const beacon = doc.data();
+                        const li = document.createElement('div');
+                        li.className = 'bg-gray-50 p-4 rounded-md shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center';
+                        const date = beacon.dateGenerated ? new Date(beacon.dateGenerated.toDate()).toLocaleString() : 'N/A';
+                        li.innerHTML = `
+                            <div>
+                                <p class="text-gray-800 font-semibold">Beacon ID: ${beacon.uniqueBeaconId}</p>
+                                <p class="text-gray-600 text-sm">Requested By: ${beacon.requestedBy || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm">Coordinates: ${beacon.latitude}, ${beacon.longitude}</p>
+                                <p class="text-gray-600 text-sm">Parcel: ${beacon.parcelId}</p>
+                                <p class="text-xs text-gray-500">Generated On: ${date}</p>
+                            </div>
+                            <div class="mt-3 md:mt-0 md:ml-4">
+                                <button class="approve-beacon-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out"
+                                        data-doc-id="${doc.id}">Approve</button>
+                                <button class="reject-beacon-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-300 ease-in-out ml-2"
+                                        data-doc-id="${doc.id}">Reject</button>
+                            </div>
+                        `;
+                        pendingBeaconsList.appendChild(li);
+                    });
+
+                    // Attach event listeners to new buttons
+                    document.querySelectorAll('.approve-beacon-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            approveBeacon(e.target.dataset.docId);
+                        });
+                    });
+                    document.querySelectorAll('.reject-beacon-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            rejectBeacon(e.target.dataset.docId);
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading pending beacons: ", error);
+                showNotification(`Error loading pending beacons: ${error.message}`, 'error');
+            }
+        }
+
+        async function approveBeacon(docId) {
+            setLoading(true);
+            try {
+                await db.collection("beacons").doc(docId).update({
+                    status: 'approved',
+                    approvedBy: auth.currentUser ? auth.currentUser.email : 'admin',
+                    approvedOn: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showNotification('Beacon approved successfully!', 'success');
+                addActivity(`Approved beacon request: ${docId}`);
+                loadPendingBeaconsForApproval(); // Reload list
+                loadDashboardStats(); // Update pending count on dashboard
+            } catch (error) {
+                console.error("Error approving beacon: ", error);
+                showNotification(`Error approving beacon: ${error.message}`, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function rejectBeacon(docId) {
+            setLoading(true);
+            try {
+                await db.collection("beacons").doc(docId).update({
+                    status: 'rejected',
+                    rejectedBy: auth.currentUser ? auth.currentUser.email : 'admin',
+                    rejectedOn: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showNotification('Beacon request rejected.', 'info');
+                addActivity(`Rejected beacon request: ${docId}`);
+                loadPendingBeaconsForApproval(); // Reload list
+                loadDashboardStats(); // Update pending count on dashboard
+            } catch (error) {
+                console.error("Error rejecting beacon: ", error);
+                showNotification(`Error rejecting beacon: ${error.message}`, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+
+        // Surveyor Management Logic (re-integrated)
+        if (addSurveyorBtn) {
+            addSurveyorBtn.addEventListener('click', async () => {
+                const name = surveyorNameInput.value.trim();
+                const email = surveyorEmailInput.value.trim();
+                const phone = surveyorPhoneInput.value.trim();
+                const license = surveyorLicenseInput.value.trim();
+
+                if (!name || !email || !phone || !license) {
+                    showNotification('Please fill all surveyor fields.', 'warning');
+                    return;
+                }
+
+                setLoading(true);
                 try {
-                    const userDoc = await getDoc(doc(db, "surveyors", user.uid));
-                    if (userDoc.exists()) {
-                        currentUserData = userDoc.data();
-                        if (currentUserData.role === 'admin') {
-                            window.location.href = ADMIN_PAGE_URL; // Always redirect admin
-                        } else {
-                            loginOverlay.classList.add('hidden');
-                            mainContentWrapper.classList.remove('hidden');
-                            initApplication(); // Initialize main app for non-admin users
-                            currentUserNameSpan.textContent = currentUserData.name || user.email;
-                        }
-                    } else {
-                        // This case should ideally be handled by processLoginSuccess for new Google users.
-                        // If an email/password user somehow logs in but has no Firestore profile,
-                        // or if a Google user's profile was deleted, log them out.
-                        console.warn("User authenticated but no Firestore profile found. Logging out.");
-                        await signOut(auth); // Log out invalid user
-                        showNotification('User profile not found in database. Please log in again or contact support.', 'error');
-                        loginOverlay.classList.remove('hidden');
-                        mainContentWrapper.classList.add('hidden');
-                    }
+                    await db.collection("surveyors").doc(email).set({
+                        name,
+                        email,
+                        phone,
+                        license,
+                        registeredOn: new Date(),
+                    });
+                    showNotification(`Surveyor ${name} added successfully!`, 'success');
+                    addActivity(`Added new surveyor: ${name}`);
+                    surveyorNameInput.value = '';
+                    surveyorEmailInput.value = '';
+                    surveyorPhoneInput.value = '';
+                    surveyorLicenseInput.value = '';
+                    await loadSurveyors(); // Reload dropdowns if any
                 } catch (error) {
-                    console.error("Error checking user profile on auth state change:", error);
-                    showNotification(`Error loading profile: ${error.message}`, 'error');
-                    await signOut(auth); // Log out on error
-                    loginOverlay.classList.remove('hidden');
-                    mainContentWrapper.classList.add('hidden');
+                    console.error("Error adding surveyor: ", error);
+                    showNotification(`Failed to add surveyor: ${error.message}`, 'error');
                 } finally {
                     setLoading(false);
                 }
-            } else {
-                // User is signed out. Show login.
-                setLoading(false); // Hide loading if it was showing
-                loginOverlay.classList.remove('hidden');
-                mainContentWrapper.classList.add('hidden');
-                currentUserNameSpan.textContent = 'Guest'; // Reset display
-                isRegisterMode = false; // Ensure it defaults to login mode
-                updateAuthModeUI(); // Update UI to login mode
-            }
-        });
-
-        // Function to set loading state
-        function setLoading(isLoading) {
-            if (isLoading) {
-                loadingOverlay.style.display = 'flex';
-            } else {
-                loadingOverlay.style.display = 'none';
-            }
+            });
         }
 
-
-        // --- Main Application Logic (inside a function now, to be called after login) ---
-        async function initApplication() {
-            currentYearFooterSpan.textContent = currentYear;
-            yearText.textContent = currentYear;
-
-            await testFirestoreConnection(); // Re-run connection test when app initializes
-
-            await loadSurveyors(); // Load initial data for surveyors dropdown
-
-            addActivity("System Initialized for 2025");
-
-            // --- Event Listeners ---
-            surveyorSelect.addEventListener('change', async (event) => {
-                const selectedSurveyorId = event.target.value;
-                if (selectedSurveyorId) {
-                    updateSurveyorQuotaDisplay(selectedSurveyorId);
-                } else {
-                    surveyorQuotaDiv.textContent = 'Select a surveyor to see quota.';
-                    surveyorQuotaDiv.className = 'mt-2 text-sm text-gray-600';
-                }
-            });
-
-            beaconForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-
-                const selectedSurveyorId = surveyorSelect.value;
-                if (!selectedSurveyorId) {
-                    showNotification('Please select a surveyor.', 'error');
-                    return;
-                }
-
-                const surveyor = surveyors.find(s => s.id === selectedSurveyorId);
-                if (!surveyor) {
-                    showNotification('Selected surveyor not found.', 'error');
-                    return;
-                }
-
-                const beaconsToGenerate = parseInt(beaconCountInput.value);
-                if (isNaN(beaconsToGenerate) || beaconsToGenerate <= 0) {
-                    showNotification('Please enter a valid number of beacons (1-50).', 'error');
-                    return;
-                }
-                if (beaconsToGenerate > 50) {
-                     showNotification('Maximum 50 beacons per parcel allowed.', 'error');
-                     return;
-                }
-
-                if (userBeaconCountInQuarter + beaconsToGenerate > beaconLimitPerSurveyor) {
-                    showNotification(`Generating ${beaconsToGenerate} beacons would exceed surveyor's quota for this quarter (${beaconLimitPerSurveyor}). Remaining: ${beaconLimitPerSurveyor - userBeaconCountInQuarter}`, 'error');
-                    return;
-                }
-
-                const latitude = latitudeInput.value;
-                const longitude = longitudeInput.value;
-                if (!latitude || !longitude) {
-                    showNotification('Origin beacon coordinates (Latitude and Longitude) are required.', 'error');
-                    return;
-                }
-
-                const parcelArea = parseFloat(parcelAreaInput.value) || 0;
-                const lga = lgaSelect.value;
-                if (!lga) {
-                    showNotification('Please select a Local Government Area.', 'error');
-                    return;
-                }
-
-                const recceFile = recceDiagramInput.files[0];
-                if (!recceFile) {
-                    showNotification('RECCE Diagram upload is required for GIS integration.', 'error');
-                    return;
-                }
-
-                // Simulate file upload (replace with actual Firebase Storage upload)
-                // For this demo, we'll just acknowledge the file and move on.
-                // You would typically upload to Firebase Storage here and get a URL.
-                showNotification('RECCE Diagram uploaded (simulation).', 'info');
-
-                try {
-                    // --- IMPORTANT CHANGE: Save request to 'beaconRequests' collection ---
-                    const requestData = {
-                        surveyorId: selectedSurveyorId,
-                        beaconCount: beaconsToGenerate,
-                        latitude: latitude,
-                        longitude: longitude,
-                        parcelArea: parcelArea,
-                        lga: lga,
-                        recceDiagramUrl: 'placeholder_url_for_recce_diagram.pdf', // Placeholder, replace with actual URL after upload
-                        description: descriptionTextarea.value,
-                        generatedAt: new Date().toISOString(),
-                        status: 'pending', // Set status to pending
-                        parcelUniqueId: `${surveyor.prefix}-${Date.now()}` // Example unique ID for the parcel
-                    };
-
-                    await addDoc(collection(db, "beaconRequests"), requestData);
-
-                    showNotification('Beacon request submitted for approval!', 'success');
-                    addActivity(`Submitted request for ${beaconsToGenerate} beacons for ${surveyor.name} (${surveyor.prefix}).`);
-
-                    // Clear the form and hide generated beacons section
-                    beaconForm.reset();
-                    uploadedFilesDiv.innerHTML = '';
-                    generatedBeaconsDiv.classList.add('hidden');
-                    beaconsListDiv.innerHTML = '';
-                    coordinatesListDiv.innerHTML = '';
-                    updateSurveyorQuotaDisplay(selectedSurveyorId); // Update quota display immediately
-
-                } catch (error) {
-                    console.error("Error submitting beacon request:", error);
-                    showNotification(`Error submitting request: ${error.message}`, 'error');
-                }
-            });
-
-            searchBeaconInput.addEventListener('input', () => {
-                validationResultsDiv.classList.add('hidden');
-                validationContentDiv.innerHTML = '';
-            });
-
-            validateBtn.addEventListener('click', async () => {
-                const beaconIdToValidate = searchBeaconInput.value.trim();
-                if (!beaconIdToValidate) {
-                    showNotification('Please enter a beacon ID to validate.', 'warning');
-                    return;
-                }
-
-                validationResultsDiv.classList.remove('hidden');
-                validationContentDiv.innerHTML = '<p class="text-gray-500">Searching...</p>';
-
-                try {
-                    // Search for the beacon in Firestore
-                    const q = query(collection(db, "beacons"), where("beaconId", "==", beaconIdToValidate));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach(docSnap => {
-                            const data = docSnap.data();
-                            const associatedSurveyor = surveyors.find(s => s.id === data.surveyorId);
-                            const surveyorInfo = associatedSurveyor ? `${associatedSurveyor.prefix} - ${associatedSurveyor.name}` : 'Unknown';
-                            validationContentDiv.innerHTML = `
-                                <div class="bg-green-50 p-3 rounded-md border border-green-200">
-                                    <p class="font-bold text-green-700"><i class="fas fa-check-circle mr-1"></i> Beacon Found!</p>
-                                    <p class="text-sm"><strong>ID:</strong> ${data.beaconId}</p>
-                                    <p class="text-sm"><strong>Surveyor:</strong> ${surveyorInfo}</p>
-                                    <p class="text-sm"><strong>Coordinates:</strong> Lat ${data.latitude}, Long ${data.longitude}</p>
-                                    <p class="text-sm"><strong>LGA:</strong> ${data.lga}</p>
-                                    <p class="text-sm"><strong>Parcel Area:</strong> ${data.parcelArea} ha</p>
-                                    <p class="text-sm"><strong>Description:</strong> ${data.description}</p>
-                                    <p class="text-sm"><strong>Generated At:</strong> ${new Date(data.generatedAt).toLocaleString()}</p>
-                                    <p class="text-sm text-blue-600 mt-2">This beacon is officially registered and valid.</p>
-                                </div>
-                            `;
-                            addActivity(`Validated beacon: ${beaconIdToValidate}.`);
-                        });
-                        showNotification('Beacon validated successfully!', 'success');
-                    } else {
-                        validationContentDiv.innerHTML = `
-                            <div class="bg-red-50 p-3 rounded-md border border-red-200">
-                                <p class="font-bold text-red-700"><i class="fas fa-times-circle mr-1"></i> Beacon Not Found</p>
-                                <p class="text-sm">The beacon ID "${beaconIdToValidate}" was not found in the system. Please check for typos or ensure it has been generated.</p>
-                            </div>
-                        `;
-                        showNotification('Beacon not found.', 'error');
-                    }
-                } catch (error) {
-                    console.error("Error validating beacon:", error);
-                    validationContentDiv.innerHTML = `
-                        <div class="bg-red-50 p-3 rounded-md border border-red-200">
-                            <p class="font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-1"></i> Error Validating</p>
-                            <p class="text-sm">An error occurred while validating the beacon: ${error.message}</p>
-                        </div>
-                    `;
-                    showNotification(`Error validating beacon: ${error.message}`, 'error');
-                }
-            });
-
-            // This is the ADMIN panel's "Add New Surveyor" button, still separate from user registration
-            addSurveyorBtn.addEventListener('click', async () => {
-                const email = document.getElementById('newSurveyorEmail').value.trim();
-                const password = document.getElementById('newSurveyorPassword').value.trim();
-                const prefix = document.getElementById('newPrefix').value.trim().toUpperCase();
-                const name = document.getElementById('newName').value.trim();
-
-                if (!email || !password || !prefix || !name) {
-                    showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration in admin panel.', 'error');
-                    return;
-                }
-                if (password.length < 6) {
-                    showNotification('Password must be at least 6 characters long.', 'error');
-                    return;
-                }
-                if (!/^[A-Z]{2}$/.test(prefix)) {
-                    showNotification('Please enter a valid 2-letter prefix (e.g., AB) for the surveyor.', 'error');
-                    return;
-                }
-
-                const success = await addSurveyor(email, password, prefix, name);
-                if (success) {
-                    document.getElementById('newSurveyorEmail').value = '';
-                    document.getElementById('newSurveyorPassword').value = '';
-                    document.getElementById('newPrefix').value = '';
-                    document.getElementById('newName').value = '';
-                }
-            });
-
-            recceDiagramInput.addEventListener('change', () => {
-                uploadedFilesDiv.innerHTML = '';
-                if (recceDiagramInput.files.length > 0) {
-                    Array.from(recceDiagramInput.files).forEach(file => {
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'flex items-center justify-between bg-blue-100 text-blue-800 text-sm px-3 py-2 rounded-md mt-1';
-                        fileItem.innerHTML = `
-                            <span><i class="fas fa-file mr-2"></i>${file.name}</span>
-                            <span>${(file.size / 1024).toFixed(1)} KB</span>
-                        `;
-                        uploadedFilesDiv.appendChild(fileItem);
-                    });
-                }
-            });
-
-            fileUploadArea.addEventListener('click', () => recceDiagramInput.click());
-            fileUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.add('border-blue-500', 'bg-blue-50');
-            });
-            fileUploadArea.addEventListener('dragleave', () => {
-                fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
-            });
-            fileUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
-                recceDiagramInput.files = e.dataTransfer.files;
-                recceDiagramInput.dispatchEvent(new Event('change')); // Trigger change event
-            });
-
-
+        if (csvFileInput && csvFileNameDisplay && uploadCsvBtn && csvUploadArea) {
             csvUploadArea.addEventListener('click', () => csvFileInput.click());
-            csvUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                csvUploadArea.classList.add('border-blue-500', 'bg-blue-50');
-            });
-            csvUploadArea.addEventListener('dragleave', () => {
-                csvUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
-            });
-            csvUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                csvUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
-                csvFileInput.files = e.dataTransfer.files;
-                csvFileInput.dispatchEvent(new Event('change')); // Trigger change event
-            });
 
-            csvFileInput.addEventListener('change', () => {
-                if (csvFileInput.files.length > 0) {
-                    csvFileNameDisplay.textContent = `Selected: ${csvFileInput.files[0].name}`;
+            csvFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    csvFileNameDisplay.textContent = file.name;
                 } else {
                     csvFileNameDisplay.textContent = '';
                 }
             });
 
-            uploadCsvBtn.addEventListener('click', () => {
+            uploadCsvBtn.addEventListener('click', async () => {
                 const file = csvFileInput.files[0];
                 if (!file) {
                     showNotification('Please select a CSV file to upload.', 'warning');
                     return;
                 }
 
-                if (!file.name.toLowerCase().endsWith('.csv')) {
-                    showNotification('Invalid file type. Please upload a CSV file.', 'error');
-                    return;
-                }
-
                 const reader = new FileReader();
+                setLoading(true);
+
                 reader.onload = async (e) => {
                     const text = e.target.result;
                     const lines = text.split('\n').filter(line => line.trim() !== '');
-                    if (lines.length <= 1) { // Check for headers only or empty file
-                        showNotification('CSV file is empty or contains no valid data.', 'warning');
+
+                    if (lines.length === 0) {
+                        showNotification('CSV file is empty.', 'warning');
+                        setLoading(false);
                         return;
                     }
 
-                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                    const emailIndex = headers.indexOf('email');
-                    const passwordIndex = headers.indexOf('password');
-                    const prefixIndex = headers.indexOf('prefix');
-                    const nameIndex = headers.indexOf('name');
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    const requiredHeaders = ['Name', 'Email', 'Phone', 'LicenseNo'];
+                    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
 
-                    if (emailIndex === -1 || passwordIndex === -1 || prefixIndex === -1 || nameIndex === -1) {
-                        showNotification('CSV must contain "Email", "Password", "Prefix", and "Name" columns.', 'error');
+                    if (missingHeaders.length > 0) {
+                        showNotification(`Missing required CSV headers: ${missingHeaders.join(', ')}.`, 'error');
+                        setLoading(false);
                         return;
                     }
 
-                    const surveyorsToProcess = [];
+                    let successCount = 0;
                     const errors = [];
-                    const existingPrefixes = new Set(surveyors.map(s => s.prefix.toUpperCase())); // Get existing prefixes
 
-                    for (let i = 1; i < lines.length; i++) { // Start from 1 to skip header
-                        const parts = lines[i].split(',').map(p => p.trim());
-                        const email = parts[emailIndex] || '';
-                        const password = parts[passwordIndex] || '';
-                        const prefix = parts[prefixIndex] ? parts[prefixIndex].toUpperCase() : '';
-                        const name = parts[nameIndex] || '';
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.trim());
+                        if (values.length !== headers.length) {
+                            errors.push(`Skipping malformed row: ${lines[i]}`);
+                            continue;
+                        }
 
-                        if (email && password && prefix && name) {
-                            if (password.length < 6) {
-                                errors.push(`Row ${i + 1} (${email}): Password must be at least 6 characters.`);
-                                continue;
+                        const surveyorData = {};
+                        headers.forEach((header, index) => {
+                            surveyorData[header] = values[index];
+                        });
+
+                        if (!surveyorData.Name || !surveyorData.Email || !surveyorData.Phone || !surveyorData.LicenseNo) {
+                            errors.push(`Skipping row due to missing data: ${lines[i]}`);
+                            continue;
+                        }
+
+                        try {
+                            await db.collection("surveyors").doc(surveyorData.Email).set({
+                                name: surveyorData.Name,
+                                email: surveyorData.Email,
+                                phone: surveyorData.Phone,
+                                license: surveyorData.LicenseNo,
+                                registeredOn: new Date(),
+                            });
+                            successCount++;
+                        } catch (error) {
+                            let errMsg = error.message;
+                            if (error.code === 'permission-denied') {
+                                errMsg = 'Permission denied. Check Firestore security rules.';
                             }
-                            if (!/^[A-Z]{2}$/.test(prefix)) {
-                                errors.push(`Row ${i + 1} (${email}): Invalid prefix format '${prefix}'. Must be 2 uppercase letters.`);
-                                continue;
-                            }
-                            if (existingPrefixes.has(prefix)) {
-                                errors.push(`Row ${i + 1} (${email}): Surveyor with prefix '${prefix}' already exists. Skipping.`);
-                                continue;
-                            }
-                            surveyorsToProcess.push({ email, password, prefix, name });
-                            existingPrefixes.add(prefix); // Add to set to prevent duplicates within the CSV as well
-                        } else {
-                            errors.push(`Row ${i + 1}: Missing required data.`);
+                            errors.push(`Failed to register ${surveyorData.Email}: ${errMsg}`);
+                            console.error(`Error registering surveyor ${surveyorData.Email}:`, error);
                         }
                     }
+                    setLoading(false);
 
-                    if (surveyorsToProcess.length > 0) {
-                        setLoading(true); // Use setLoading function
-                        let successCount = 0;
-                        for (const surveyorData of surveyorsToProcess) {
-                            try {
-                                // Attempt to register each surveyor
-                                const userCredential = await createUserWithEmailAndPassword(auth, surveyorData.email, surveyorData.password);
-                                const user = userCredential.user;
-
-                                await setDoc(doc(db, "surveyors", user.uid), {
-                                    email: surveyorData.email,
-                                    prefix: surveyorData.prefix,
-                                    name: surveyorData.name,
-                                    quota: beaconLimitPerSurveyor,
-                                    lastQuotaReset: new Date().toISOString(),
-                                    role: 'surveyor'
-                                });
-                                successCount++;
-                            } catch (error) {
-                                let errMsg = error.message;
-                                if (error.code === 'auth/email-already-in-use') {
-                                    errMsg = 'Email already in use.';
-                                }
-                                errors.push(`Failed to register ${surveyorData.email}: ${errMsg}`);
-                                console.error(`Error registering surveyor ${surveyorData.email}:`, error);
-                            }
-                        }
-                        setLoading(false); // Use setLoading function
-
-                        showNotification(`Successfully registered ${successCount} surveyors from CSV!`, 'success');
-                        await loadSurveyors(); // Reload surveyors into dropdown
-                        addActivity(`Registered ${successCount} surveyors from CSV.`);
-
-                    } else {
-                        showNotification('No valid new surveyors found in CSV or all entries had issues.', 'info');
-                    }
+                    showNotification(`Successfully registered ${successCount} surveyors from CSV!`, 'success');
+                    await loadSurveyors(); // Reload surveyors into dropdown
+                    addActivity(`Registered ${successCount} surveyors from CSV.`);
 
                     if (errors.length > 0) {
                         console.warn("CSV processing errors:", errors.join('\n'));
@@ -1679,6 +1023,18 @@
                 reader.readAsText(file);
             });
         }
+
+        // Dummy loadSurveyors function - to be implemented if surveyors are used in dropdowns/lists
+        async function loadSurveyors() {
+            // This function should fetch surveyors from Firestore if they are displayed
+            // in a list or used in dropdowns elsewhere in the application.
+            // For now, it's just a placeholder to prevent errors from CSV upload logic.
+            console.log("loadSurveyors called (admin panel feature).");
+        }
+
+        // Initial call to loadSurveyors if admin panel is the default view or if needed on page load
+        // This might not be necessary on initial load if the admin section is hidden by default.
+        // It will be called when the admin section is activated via sidebar.
     </script>
 </body>
 </html>
