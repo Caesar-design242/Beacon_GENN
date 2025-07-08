@@ -502,13 +502,15 @@ const firebaseConfig = {
             }
         }
 
-        function setLoading(isLoading) {
-            if (isLoading) {
-                loadingOverlay.classList.remove('hidden');
-            } else {
-                loadingOverlay.classList.add('hidden');
-            }
-        }
+       function setLoading(isLoading) {
+    if (isLoading) {
+        console.log("SETTING LOADING TRUE: Overlay should be visible.");
+        loadingOverlay.classList.remove('hidden');
+    } else {
+        console.log("SETTING LOADING FALSE: Overlay should be hidden.");
+        loadingOverlay.classList.add('hidden');
+    }
+}
 
         // --- UI Interactions ---
         sidebarToggle.addEventListener('click', () => {
