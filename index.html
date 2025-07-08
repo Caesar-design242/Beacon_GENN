@@ -695,12 +695,14 @@
     <script type="module">
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
-        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"; // Added deleteDoc
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, deleteUser } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"; // Added deleteUser
+        // Removed getAnalytics as it's optional and not directly used in core functionality
+        import { getFirestore, collection, doc, addDoc, getDoc, query, where, getDocs, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, deleteUser, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         // You might need getStorage for RECCE diagrams later
         // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
+        // --- Firebase Configuration ---
+        // IMPORTANT: Replace "YOUR_FIREBASE_API_KEY" with your actual API key from Firebase Project Settings.
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCRvbMx747ZQL2DTSIm2bywOGHf7JJg7vA",
@@ -711,13 +713,27 @@ const firebaseConfig = {
   appId: "1:130634267193:web:cdb103cd71cda24ba62be8",
   measurementId: "G-ZG50RM7P47"
 };
+        // Ensure the API key is not the placeholder
+        if (firebaseConfig.apiKey === "YOUR_FIREBASE_API_KEY" || !firebaseConfig.apiKey) {
+            console.error("Firebase Initialization Error: API Key is missing or is the placeholder. Please replace 'YOUR_FIREBASE_API_KEY' in firebaseConfig with your actual Firebase project API key.");
+            showNotification("Firebase Error: API Key missing or invalid. Check console for details.", "error");
+            // Prevent further Firebase operations if the key is invalid
+            document.getElementById('loginOverlay').innerHTML = '<div class="login-card"><h2 class="text-2xl font-bold mb-6 text-gray-800">Configuration Error</h2><p class="text-red-600">Firebase API Key is missing or invalid. Please update `firebaseConfig` in `index.html` with your actual key.</p></div>';
+            throw new Error("Firebase API Key is invalid or missing.");
+        }
+
 
         // --- Initialize Firebase App and Services ---
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app); // Optional, remove if not used
+        // const analytics = getAnalytics(app); // Removed getAnalytics initialization
         const db = getFirestore(app);
         const auth = getAuth(app); // Initialize Firebase Authentication
-        const googleProvider = new GoogleAuthProvider(); // Initialize Google Auth Provider
+
+        // Global app ID for Firestore pathing
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Initialize Google Auth Provider
+        const googleProvider = new GoogleAuthProvider();
 
         // --- Login Elements ---
         const loginOverlay = document.getElementById('loginOverlay');
@@ -807,13 +823,16 @@ const firebaseConfig = {
         // --- Helper Functions ---
         async function testFirestoreConnection() {
             try {
-                const docRef = doc(db, "testCollection", "testDoc");
+                // Use the correct Firestore collection path with appId
+                const docRef = doc(db, `artifacts/${appId}/public/data/testCollection`, "testDoc");
                 const docSnap = await getDoc(docRef);
                 if (systemStatusText) {
                     if (docSnap.exists()) {
                         systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
                     } else {
-                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found.</span></span>';
+                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-yellow-200">Online, but test document not found. Creating one...</span></span>';
+                        await setDoc(docRef, { message: "Test document created by BeaconGen app" });
+                        systemStatusText.innerHTML = '<span class="text-white font-semibold">System Status: <span class="text-green-200">Online and Connected to Firestore!</span></span>';
                     }
                 }
             } catch (error) {
@@ -887,7 +906,8 @@ const firebaseConfig = {
                 const char1 = alphabet[Math.floor(Math.random() * alphabet.length)];
                 const char2 = alphabet[Math.floor(Math.random() * alphabet.length)];
                 prefix = char1 + char2;
-                const q = query(collection(db, "surveyors"), where("prefix", "==", prefix));
+                // Use the correct Firestore collection path with appId
+                const q = query(collection(db, `artifacts/${appId}/public/data/surveyors`), where("prefix", "==", prefix));
                 const querySnapshot = await getDocs(q);
                 if (querySnapshot.empty) {
                     isUnique = true;
@@ -920,15 +940,23 @@ const firebaseConfig = {
                 endDate = new Date(currentYear, 12, 0);  // Dec 31
             }
 
-
+            // Use the correct Firestore collection path with appId
             const q = query(
-                collection(db, "beacons"),
+                collection(db, `artifacts/${appId}/public/data/beacons`),
                 where("surveyorId", "==", surveyorId),
-                where("generatedAt", ">=", startDate.toISOString()),
-                where("generatedAt", "<=", endDate.toISOString())
+                // Firestore does not support range queries on different fields.
+                // We will fetch all and filter by date in memory for simplicity in this demo.
+                // In a production app, you might structure data differently or use Cloud Functions.
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.size;
+            let count = 0;
+            querySnapshot.forEach(doc => {
+                const generatedDate = new Date(doc.data().generatedAt);
+                if (generatedDate >= startDate && generatedDate <= endDate) {
+                    count++;
+                }
+            });
+            return count;
         }
 
 
@@ -953,7 +981,8 @@ const firebaseConfig = {
                 surveyorsListBody.innerHTML = ''; // Clear existing table rows
                 surveyors = []; // Clear global surveyors array
 
-                const querySnapshot = await getDocs(collection(db, "surveyors"));
+                // Use the correct Firestore collection path with appId
+                const querySnapshot = await getDocs(collection(db, `artifacts/${appId}/public/data/surveyors`));
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const surveyor = { id: doc.id, ...data };
@@ -1009,7 +1038,8 @@ const firebaseConfig = {
             setLoading(true); // Use setLoading function
             try {
                 // 1. Check if a surveyor with the given prefix already exists
-                const qPrefix = query(collection(db, "surveyors"), where("prefix", "==", prefix));
+                // Use the correct Firestore collection path with appId
+                const qPrefix = query(collection(db, `artifacts/${appId}/public/data/surveyors`), where("prefix", "==", prefix));
                 const querySnapshotPrefix = await getDocs(qPrefix);
                 if (!querySnapshotPrefix.empty) {
                     throw new Error(`Surveyor with prefix '${prefix}' already exists.`);
@@ -1025,7 +1055,8 @@ const firebaseConfig = {
                 }
 
                 // 3. Store surveyor profile in Firestore using Auth UID as document ID
-                await setDoc(doc(db, "surveyors", user.uid), {
+                // Use the correct Firestore collection path with appId
+                await setDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid), {
                     email: email,
                     prefix: prefix,
                     name: name,
@@ -1066,7 +1097,8 @@ const firebaseConfig = {
             setLoading(true);
             try {
                 // 1. Delete Firestore document
-                await deleteDoc(doc(db, "surveyors", uidToDelete));
+                // Use the correct Firestore collection path with appId
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, uidToDelete));
                 showNotification('Surveyor profile deleted from Firestore.', 'info');
                 addActivity(`Deleted surveyor profile with UID: ${uidToDelete}.`);
 
@@ -1280,7 +1312,8 @@ const firebaseConfig = {
 
         async function processLoginSuccess(user) {
             // Fetch user's role from Firestore
-            const userDocRef = doc(db, "surveyors", user.uid);
+            // Use the correct Firestore collection path with appId
+            const userDocRef = doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
@@ -1310,6 +1343,7 @@ const firebaseConfig = {
                     const surveyorName = user.displayName || user.email.split('@')[0]; // Use display name or derive from email
 
                     // For Google Sign-in, default to 'surveyor' role if no existing profile
+                    // Use the correct Firestore collection path with appId
                     await setDoc(userDocRef, {
                         email: user.email,
                         prefix: newPrefix,
@@ -1397,7 +1431,8 @@ const firebaseConfig = {
                 // User is signed in.
                 setLoading(true); // Indicate loading while checking profile
                 try {
-                    const userDoc = await getDoc(doc(db, "surveyors", user.uid));
+                    // Use the correct Firestore collection path with appId
+                    const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid));
                     if (userDoc.exists()) {
                         currentUserData = userDoc.data();
                         currentUserNameSpan.textContent = currentUserData.name || user.email; // Display name or email
@@ -1419,7 +1454,8 @@ const firebaseConfig = {
                         try {
                             const newPrefix = await generateSurveyorPrefix();
                             const surveyorName = user.displayName || user.email.split('@')[0];
-                            await setDoc(doc(db, "surveyors", user.uid), {
+                            // Use the correct Firestore collection path with appId
+                            await setDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid), {
                                 email: user.email,
                                 prefix: newPrefix,
                                 name: surveyorName,
@@ -1427,7 +1463,7 @@ const firebaseConfig = {
                                 lastQuotaReset: new Date().toISOString(),
                                 role: 'surveyor' // Default to surveyor if no profile found
                             });
-                            currentUserData = (await getDoc(doc(db, "surveyors", user.uid))).data();
+                            currentUserData = (await getDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid))).data();
                             showNotification(`Welcome, ${surveyorName}! Your surveyor profile has been created.`, 'success');
                             adminPanel.classList.add('hidden'); // Hide admin panel for new default surveyor
                             loginOverlay.classList.add('hidden');
@@ -1476,6 +1512,40 @@ const firebaseConfig = {
         async function initApplication() {
             currentYearFooterSpan.textContent = currentYear;
             yearText.textContent = currentYear;
+
+            // Handle initial authentication token for Canvas environment
+            if (typeof __initial_auth_token !== 'undefined' && auth.currentUser === null) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                    console.log("Signed in with custom token.");
+                } catch (error) {
+                    console.error("Error signing in with custom token:", error);
+                    // Fallback to anonymous sign-in if custom token fails
+                    try {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    } catch (anonError) {
+                        console.error("Error signing in anonymously:", anonError);
+                        showNotification(`Authentication failed: ${anonError.message}`, 'error');
+                    }
+                }
+            } else if (auth.currentUser === null) {
+                // If no custom token and not already signed in, sign in anonymously
+                try {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                } catch (anonError) {
+                    console.error("Error signing in anonymously:", anonError);
+                    showNotification(`Authentication failed: ${anonError.message}`, 'error');
+                }
+            }
+
+            // Ensure Firebase is initialized and authenticated before proceeding
+            if (!auth.currentUser) {
+                console.warn("User not authenticated after initApplication. Some features may not work.");
+                showNotification("Authentication required to use all features.", "warning");
+                return; // Exit if not authenticated
+            }
 
             await testFirestoreConnection(); // Re-run connection test when app initializes
 
@@ -1551,6 +1621,7 @@ const firebaseConfig = {
 
                 try {
                     // --- IMPORTANT CHANGE: Save request to 'beaconRequests' collection ---
+                    // Use the correct Firestore collection path with appId
                     const requestData = {
                         surveyorId: selectedSurveyorId,
                         beaconCount: beaconsToGenerate,
@@ -1565,7 +1636,7 @@ const firebaseConfig = {
                         parcelUniqueId: `${surveyor.prefix}-${Date.now()}` // Example unique ID for the parcel
                     };
 
-                    await addDoc(collection(db, "beaconRequests"), requestData);
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/beaconRequests`), requestData);
 
                     showNotification('Beacon request submitted for approval!', 'success');
                     addActivity(`Submitted request for ${beaconsToGenerate} beacons for ${surveyor.name} (${surveyor.prefix}).`);
@@ -1601,7 +1672,8 @@ const firebaseConfig = {
 
                 try {
                     // Search for the beacon in Firestore
-                    const q = query(collection(db, "beacons"), where("beaconId", "==", beaconIdToValidate));
+                    // Use the correct Firestore collection path with appId
+                    const q = query(collection(db, `artifacts/${appId}/public/data/beacons`), where("beaconId", "==", beaconIdToValidate));
                     const querySnapshot = await getDocs(q);
 
                     if (!querySnapshot.empty) {
@@ -1804,7 +1876,8 @@ const firebaseConfig = {
                                 const userCredential = await createUserWithEmailAndPassword(auth, surveyorData.email, surveyorData.password);
                                 const user = userCredential.user;
 
-                                await setDoc(doc(db, "surveyors", user.uid), {
+                                // Use the correct Firestore collection path with appId
+                                await setDoc(doc(db, `artifacts/${appId}/public/data/surveyors`, user.uid), {
                                     email: surveyorData.email,
                                     prefix: surveyorData.prefix,
                                     name: surveyorData.name,
