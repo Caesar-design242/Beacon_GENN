@@ -261,30 +261,47 @@
         .hidden {
             display: none;
         }
+        /* New styles for register fields */
+        .register-fields {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .register-fields.show {
+            max-height: 200px; /* Adjust based on content height */
+            transition: max-height 0.5s ease-in;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Login Overlay -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-card">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">BeaconGen Login</h2>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800" id="authTitle">BeaconGen Login</h2>
             <input type="email" id="loginEmailInput" class="login-input" placeholder="Enter email" autocomplete="username">
             <input type="password" id="loginPasswordInput" class="login-input" placeholder="Enter password" autocomplete="current-password">
-            <button id="loginButton" class="login-button">Login</button>
 
-            <div class="my-4 text-gray-400 text-sm">-- OR --</div>
+            <!-- New fields for registration, initially hidden -->
+            <div id="registerFields" class="register-fields">
+                <input type="text" id="newSurveyorNameInput" class="login-input" placeholder="Your Full Name" autocomplete="name">
+                <input type="text" id="newSurveyorPrefixInput" class="login-input" placeholder="Your 2-letter Prefix (e.g., AB)" maxlength="2" style="text-transform: uppercase;">
+            </div>
+
+            <p id="loginErrorMessage" class="error-message hidden">Incorrect email or password.</p>
+
+            <button id="mainAuthButton" class="login-button mb-3">Login</button>
+            <button id="toggleAuthModeButton" class="w-full text-blue-600 py-2 rounded-md hover:underline text-sm">Don't have an account? <span class="font-semibold">Register here</span></button>
+
+            <div class="my-4 text-gray-400 text-center">-- OR --</div>
 
             <button id="googleSignInButton" class="google-sign-in-button">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
                 Sign in with Google
             </button>
-
-            <p id="loginErrorMessage" class="error-message hidden">Incorrect email or password.</p>
-            <p class="text-xs text-blue-500 mt-4">
-                Note: You can register new surveyors via the "Add New Surveyor" section.
-            </p>
         </div>
     </div>
 
+    <!-- Main Content Wrapper - Initially Hidden -->
     <div id="mainContentWrapper" class="hidden">
         <div id="loadingOverlay" class="loading-overlay">
             <div class="spinner"></div>
@@ -570,7 +587,7 @@
                 <h2 class="text-xl font-bold mb-6 flex items-center">
                     <i class="fas fa-user-tie text-blue-600 mr-2"></i> Surveyor Management
                 </h2>
-                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor</h4>
+                <h4 class="text-lg font-semibold mb-3 text-blue-800">Add New Surveyor (Admin Panel)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="newSurveyorEmail" class="block text-sm font-medium text-gray-700">Email (for Login):</label>
@@ -611,7 +628,9 @@
             <p>&copy; <span id="currentYearFooter">2025</span> BeaconGen. All rights reserved.</p>
             <p>Developed with <span class="text-red-500">&hearts;</span> by EdoGIS Solutions. <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
         </footer>
-    </div> <script type="module">
+    </div> <!-- End of #mainContentWrapper -->
+
+    <script type="module">
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"; // Optional, remove if not used
@@ -640,10 +659,15 @@
 
         // --- Login Elements ---
         const loginOverlay = document.getElementById('loginOverlay');
+        const authTitle = document.getElementById('authTitle'); // New: for dynamic title
         const loginEmailInput = document.getElementById('loginEmailInput');
         const loginPasswordInput = document.getElementById('loginPasswordInput');
-        const loginButton = document.getElementById('loginButton');
-        const googleSignInButton = document.getElementById('googleSignInButton'); // New Google Sign-in button
+        const registerFields = document.getElementById('registerFields'); // New: for register fields container
+        const newSurveyorNameInput = document.getElementById('newSurveyorNameInput'); // New: for register name
+        const newSurveyorPrefixInput = document.getElementById('newSurveyorPrefixInput'); // New: for register prefix
+        const mainAuthButton = document.getElementById('mainAuthButton'); // New: Main action button (Login/Register)
+        const toggleAuthModeButton = document.getElementById('toggleAuthModeButton'); // New: Toggle mode button
+        const googleSignInButton = document.getElementById('googleSignInButton');
         const loginErrorMessage = document.getElementById('loginErrorMessage');
         const mainContentWrapper = document.getElementById('mainContentWrapper');
 
@@ -687,16 +711,17 @@
         const displayParcelAreaSpan = document.getElementById('displayParcelArea');
         const searchBeaconInput = document.getElementById('searchBeacon');
         const validateBtn = document.getElementById('validateBtn');
-        const validationResultsDiv = document.getElementById('validationResults'); // Corrected line
+        const validationResultsDiv = document.getElementById('validationResults');
         const validationContentDiv = document.getElementById('validationContent');
         const activityLogDiv = document.getElementById('activityLog');
 
-        // New surveyor registration elements
-        const newSurveyorEmailInput = document.getElementById('newSurveyorEmail');
-        const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword');
-        const newPrefixInput = document.getElementById('newPrefix');
-        const newNameInput = document.getElementById('newName');
-        const addSurveyorBtn = document.getElementById('addSurveyorBtn');
+        // Note: The 'Add New Surveyor' section in the main content is for admin-like bulk/manual addition.
+        // The login overlay now handles user-facing registration.
+        // const newSurveyorEmailInput = document.getElementById('newSurveyorEmail'); // No longer used for user-facing registration
+        // const newSurveyorPasswordInput = document.getElementById('newSurveyorPassword'); // No longer used
+        // const newPrefixInput = document.getElementById('newPrefix'); // No longer used
+        // const newNameInput = document.getElementById('newName'); // No longer used
+        const addSurveyorBtn = document.getElementById('addSurveyorBtn'); // Still used for admin panel
 
         const csvUploadArea = document.getElementById('csvUploadArea');
         const csvFileInput = document.getElementById('csvFileInput');
@@ -713,6 +738,7 @@
         let currentQuarter = Math.floor((new Date().getMonth() / 3)) + 1; // 1-4
         let userBeaconCountInQuarter = 0; // This will be dynamic based on logged-in surveyor
         const ADMIN_PAGE_URL = 'confirmation.html'; // Path to your admin confirmation page
+        let isRegisterMode = false; // New state for login/register toggle
 
         // --- Helper Functions ---
         async function testFirestoreConnection() {
@@ -822,14 +848,10 @@
             } else if (currentQuarter === 2) {
                 startDate = new Date(currentYear, 3, 1); // Apr 1
                 endDate = new Date(currentYear, 6, 0);   // Jun 30
-            } else { // Quarter 3 and 4 (simplified for example, needs precise date logic if critical)
-                startDate = new Date(currentYear, 6, 1); // Jul 1
-                endDate = new Date(currentYear, 12, 0);  // Dec 31
-            }
-             if (currentQuarter === 3) {
+            } else if (currentQuarter === 3) {
                 startDate = new Date(currentYear, 6, 1); // Jul 1
                 endDate = new Date(currentYear, 9, 0);   // Sep 30
-            } else if (currentQuarter === 4) {
+            } else { // Quarter 4
                 startDate = new Date(currentYear, 9, 1); // Oct 1
                 endDate = new Date(currentYear, 12, 0);  // Dec 31
             }
@@ -880,6 +902,7 @@
                     updateSurveyorQuotaDisplay(auth.currentUser.uid);
                     surveyorSelect.disabled = true; // Prevent changing surveyor if logged in as one
                 } else if (surveyors.length > 0) {
+                    // For non-logged-in state, or if current user is admin, allow selection
                     surveyorSelect.value = surveyors[0].id; // Select the first surveyor by default
                     updateSurveyorQuotaDisplay(surveyors[0].id);
                     surveyorSelect.disabled = false;
@@ -893,6 +916,8 @@
             }
         }
 
+        // This function is now used by both the login overlay's register button
+        // and the admin panel's "Add New Surveyor" button.
         async function addSurveyor(email, password, prefix, name, uid = null) {
             loadingOverlay.style.display = 'flex';
             try {
@@ -904,7 +929,7 @@
                 }
 
                 let user;
-                if (uid) { // If UID is provided (e.g., from Google Sign-in)
+                if (uid) { // If UID is provided (e.g., from Google Sign-in for a new user)
                     user = auth.currentUser; // Use the currently authenticated user
                 } else { // For email/password registration
                     // 2. Create user in Firebase Authentication
@@ -952,7 +977,8 @@
         }
 
         function showBeaconInfo(id, lat, long) {
-            alert(`Beacon ID: ${id}\nLatitude: ${lat}\nLongitude: ${long}`);
+            // Replaced alert with a notification or custom modal if needed
+            showNotification(`Beacon ID: ${id} | Lat: ${lat}, Long: ${long}`, 'info');
         }
 
         async function callGeminiAPI(prompt) {
@@ -963,21 +989,14 @@
                 // You will need to set up a backend endpoint (e.g., Firebase Cloud Function)
                 // to securely call the Gemini API, as direct client-side calls are not recommended
                 // due to API key exposure.
-                const response = await fetch('YOUR_GEMINI_API_ENDPOINT', { // Replace with your actual endpoint
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer YOUR_API_KEY' // Replace with your actual API key or token
-                    },
-                    body: JSON.stringify({ prompt: prompt })
-                });
+                // Placeholder for Gemini API call
+                const mockResponse = {
+                    generatedText: `This is a summarized/enhanced description based on: "${prompt}". The AI model would provide a more sophisticated output here.`
+                };
+                // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                llmOutputText.innerText = data.generatedText; // Adjust based on your API's response structure
+                llmOutputText.innerText = mockResponse.generatedText;
                 showNotification('LLM response generated!', 'success');
             } catch (error) {
                 console.error('Error calling Gemini API:', error);
@@ -988,10 +1007,115 @@
             }
         }
 
-        // --- AUTHENTICATION LOGIC ---
-        loginButton.addEventListener('click', handleLogin);
-        googleSignInButton.addEventListener('click', handleGoogleLogin); // New event listener for Google Sign-in
+        // --- AUTHENTICATION LOGIC (Updated for toggle) ---
 
+        // Function to update the UI based on isRegisterMode
+        function updateAuthModeUI() {
+            loginErrorMessage.classList.add('hidden'); // Clear error on mode switch
+            loginEmailInput.value = ''; // Clear inputs
+            loginPasswordInput.value = '';
+            newSurveyorNameInput.value = '';
+            newSurveyorPrefixInput.value = '';
+
+            if (isRegisterMode) {
+                authTitle.textContent = 'BeaconGen Register';
+                mainAuthButton.textContent = 'Register';
+                mainAuthButton.onclick = handleUserRegister; // New handler for user register
+                toggleAuthModeButton.innerHTML = 'Already have an account? <span class="font-semibold">Login here</span>';
+                registerFields.classList.add('show');
+            } else {
+                authTitle.textContent = 'BeaconGen Login';
+                mainAuthButton.textContent = 'Login';
+                mainAuthButton.onclick = handleUserLogin; // New handler for user login
+                toggleAuthModeButton.innerHTML = 'Don\'t have an account? <span class="font-semibold">Register here</span>';
+                registerFields.classList.remove('show');
+            }
+        }
+
+        // Event listeners for login/register toggle
+        toggleAuthModeButton.addEventListener('click', () => {
+            isRegisterMode = !isRegisterMode;
+            updateAuthModeUI();
+        });
+
+        // Initial setup of the UI mode
+        updateAuthModeUI();
+
+
+        // New handler for user-facing registration
+        async function handleUserRegister() {
+            const email = loginEmailInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+            const name = newSurveyorNameInput.value.trim();
+            const prefix = newSurveyorPrefixInput.value.trim().toUpperCase();
+
+            loginErrorMessage.classList.add('hidden');
+            if (!email || !password || !name || !prefix) {
+                loginErrorMessage.textContent = 'All fields are required for registration.';
+                loginErrorMessage.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                loginErrorMessage.textContent = 'Password must be at least 6 characters long.';
+                loginErrorMessage.classList.remove('hidden');
+                return;
+            }
+            if (!/^[A-Z]{2}$/.test(prefix)) {
+                loginErrorMessage.textContent = 'Prefix must be 2 uppercase letters (e.g., AB).';
+                loginErrorMessage.classList.remove('hidden');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                // Use the existing addSurveyor function, but without UID as it's new registration
+                const success = await addSurveyor(email, password, prefix, name);
+                if (success) {
+                    // After successful registration, automatically logs in via onAuthStateChanged
+                    // and switches to dashboard. No need to explicitly call handleLogin here.
+                    showNotification('Registration successful! You are now logged in.', 'success');
+                    // Clear fields after successful registration
+                    loginEmailInput.value = '';
+                    loginPasswordInput.value = '';
+                    newSurveyorNameInput.value = '';
+                    newSurveyorPrefixInput.value = '';
+                }
+            } catch (error) {
+                // Error handled by addSurveyor function's showNotification
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // New handler for user-facing login
+        async function handleUserLogin() {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            loginErrorMessage.classList.add('hidden');
+            setLoading(true);
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                await processLoginSuccess(userCredential.user); // Re-use existing success logic
+
+            } catch (error) {
+                console.error("Error during email/password login:", error);
+                let errorMessage = error.message;
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email format.';
+                }
+                loginErrorMessage.textContent = errorMessage;
+                loginErrorMessage.classList.remove('hidden');
+                showNotification(`Login failed: ${errorMessage}`, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+
+        // Event listeners for input fields (Enter key)
         loginEmailInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 loginPasswordInput.focus();
@@ -999,9 +1123,25 @@
         });
         loginPasswordInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
-                handleLogin();
+                if (isRegisterMode) {
+                    newSurveyorNameInput.focus();
+                } else {
+                    mainAuthButton.click(); // Trigger login
+                }
             }
         });
+        newSurveyorNameInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                newSurveyorPrefixInput.focus();
+            }
+        });
+        newSurveyorPrefixInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                mainAuthButton.click(); // Trigger register
+            }
+        });
+
+        googleSignInButton.addEventListener('click', handleGoogleLogin);
         logoutButton.addEventListener('click', handleLogout);
 
         async function processLoginSuccess(user) {
@@ -1059,35 +1199,9 @@
             }
         }
 
-        async function handleLogin() {
-            const email = loginEmailInput.value;
-            const password = loginPasswordInput.value;
-            loginErrorMessage.classList.add('hidden');
-            loadingOverlay.style.display = 'flex'; // Show loading
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                await processLoginSuccess(userCredential.user);
-
-            } catch (error) {
-                console.error("Error during email/password login:", error);
-                let errorMessage = error.message;
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') { // invalid-credential is more generic now
-                    errorMessage = 'Invalid email or password.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email format.';
-                }
-                loginErrorMessage.textContent = errorMessage;
-                loginErrorMessage.classList.remove('hidden');
-                showNotification(`Login failed: ${errorMessage}`, 'error');
-            } finally {
-                loadingOverlay.style.display = 'none';
-            }
-        }
-
         async function handleGoogleLogin() {
             loginErrorMessage.classList.add('hidden');
-            loadingOverlay.style.display = 'flex';
+            setLoading(true);
 
             try {
                 const result = await signInWithPopup(auth, googleProvider);
@@ -1109,7 +1223,7 @@
                 loginErrorMessage.classList.remove('hidden');
                 showNotification(`Google Sign-in failed: ${errorMessage}`, 'error');
             } finally {
-                loadingOverlay.style.display = 'none';
+                setLoading(false);
             }
         }
 
@@ -1121,10 +1235,15 @@
                 loginOverlay.classList.remove('hidden');
                 mainContentWrapper.classList.add('hidden');
                 currentUserNameSpan.textContent = 'Guest';
+                // Clear login form fields
                 loginEmailInput.value = '';
                 loginPasswordInput.value = '';
+                newSurveyorNameInput.value = '';
+                newSurveyorPrefixInput.value = '';
                 loginErrorMessage.classList.add('hidden');
-                location.reload(); // Reload the page to ensure full reset
+                isRegisterMode = false; // Reset to login mode
+                updateAuthModeUI(); // Update UI
+                // No location.reload() needed as onAuthStateChanged will handle re-render
             } catch (error) {
                 console.error("Error during logout:", error);
                 showNotification(`Logout failed: ${error.message}`, 'error');
@@ -1135,7 +1254,7 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // User is signed in.
-                loadingOverlay.style.display = 'flex';
+                setLoading(true); // Indicate loading while checking profile
                 try {
                     const userDoc = await getDoc(doc(db, "surveyors", user.uid));
                     if (userDoc.exists()) {
@@ -1149,9 +1268,9 @@
                             currentUserNameSpan.textContent = currentUserData.name || user.email;
                         }
                     } else {
-                        // User in Auth but not in Firestore (e.g., profile deleted or first Google login handled by processLoginSuccess)
-                        // If it's a first Google login, processLoginSuccess should handle it.
-                        // If it's a deleted profile, we log them out.
+                        // This case should ideally be handled by processLoginSuccess for new Google users.
+                        // If an email/password user somehow logs in but has no Firestore profile,
+                        // or if a Google user's profile was deleted, log them out.
                         console.warn("User authenticated but no Firestore profile found. Logging out.");
                         await signOut(auth); // Log out invalid user
                         showNotification('User profile not found in database. Please log in again or contact support.', 'error');
@@ -1165,16 +1284,27 @@
                     loginOverlay.classList.remove('hidden');
                     mainContentWrapper.classList.add('hidden');
                 } finally {
-                    loadingOverlay.style.display = 'none';
+                    setLoading(false);
                 }
             } else {
                 // User is signed out. Show login.
-                loadingOverlay.style.display = 'none'; // Hide if it was showing
+                setLoading(false); // Hide loading if it was showing
                 loginOverlay.classList.remove('hidden');
                 mainContentWrapper.classList.add('hidden');
                 currentUserNameSpan.textContent = 'Guest'; // Reset display
+                isRegisterMode = false; // Ensure it defaults to login mode
+                updateAuthModeUI(); // Update UI to login mode
             }
         });
+
+        // Function to set loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loadingOverlay.style.display = 'flex';
+            } else {
+                loadingOverlay.style.display = 'none';
+            }
+        }
 
 
         // --- Main Application Logic (inside a function now, to be called after login) ---
@@ -1351,14 +1481,15 @@
                 }
             });
 
+            // This is the ADMIN panel's "Add New Surveyor" button, still separate from user registration
             addSurveyorBtn.addEventListener('click', async () => {
-                const email = newSurveyorEmailInput.value.trim();
-                const password = newSurveyorPasswordInput.value.trim();
-                const prefix = newPrefixInput.value.trim().toUpperCase();
-                const name = newNameInput.value.trim();
+                const email = document.getElementById('newSurveyorEmail').value.trim();
+                const password = document.getElementById('newSurveyorPassword').value.trim();
+                const prefix = document.getElementById('newPrefix').value.trim().toUpperCase();
+                const name = document.getElementById('newName').value.trim();
 
                 if (!email || !password || !prefix || !name) {
-                    showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration.', 'error');
+                    showNotification('All fields (Email, Password, Prefix, Name) are required for new surveyor registration in admin panel.', 'error');
                     return;
                 }
                 if (password.length < 6) {
@@ -1372,10 +1503,10 @@
 
                 const success = await addSurveyor(email, password, prefix, name);
                 if (success) {
-                    newSurveyorEmailInput.value = '';
-                    newSurveyorPasswordInput.value = '';
-                    newPrefixInput.value = '';
-                    newNameInput.value = '';
+                    document.getElementById('newSurveyorEmail').value = '';
+                    document.getElementById('newSurveyorPassword').value = '';
+                    document.getElementById('newPrefix').value = '';
+                    document.getElementById('newName').value = '';
                 }
             });
 
@@ -1497,7 +1628,7 @@
                     }
 
                     if (surveyorsToProcess.length > 0) {
-                        loadingOverlay.style.display = 'flex';
+                        setLoading(true); // Use setLoading function
                         let successCount = 0;
                         for (const surveyorData of surveyorsToProcess) {
                             try {
@@ -1523,7 +1654,7 @@
                                 console.error(`Error registering surveyor ${surveyorData.email}:`, error);
                             }
                         }
-                        loadingOverlay.style.display = 'none';
+                        setLoading(false); // Use setLoading function
 
                         showNotification(`Successfully registered ${successCount} surveyors from CSV!`, 'success');
                         await loadSurveyors(); // Reload surveyors into dropdown
